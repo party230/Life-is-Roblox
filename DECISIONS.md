@@ -233,3 +233,20 @@ feedback. Overrides:
 - **Bond Collar** (overrides its old effect): pauses the runaway timer on up to 2 brainrots; no loyalty growth
   while paused.
 
+**D38. v3 map and shared conveyor (built).** Implements D37's map and conveyor with the approved design numbers
+(`Config/Layout`):
+- 12 bases at 30° steps, gates 230 studs from the hub. Gate to carpet edge = 191 studs ≈ 12 s at WalkSpeed 16
+  (checked by a test).
+- Base 64 × 84 with a 14-pedestal grid 12 studs apart.
+- The map builder is split into `World/Builder` (ground, spokes, bases, lanes, nurseries), `World/Hub` (plaza,
+  carpet, stalls, features), `World/Decor` (props, six landmark types) and `World/Blocks` (helpers).
+- **Shared conveyor:** one central portal, a path of ramp → 330° loop → exit vortex, walking at 5 studs/s
+  (~44 s).
+  - Anyone can buy, first wins. Buying from the Shop panel needs you within 16 studs of the item; the prompt
+    works too.
+  - The plaza drop is now a **featured spawn**: a guaranteed Rare+ on the carpet every 3 minutes of Day.
+  - Every Rare+ gets the portal banner and a server toast.
+  - The carpet closes at night; runaways can still walk it and be bought.
+- **Nameplates** are 5.6 studs wide with 0.72-stud lines and hidden beyond 60 studs. The owner's client raises
+  that for their own brainrots.
+

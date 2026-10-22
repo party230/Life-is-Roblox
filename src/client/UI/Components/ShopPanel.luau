@@ -1,6 +1,6 @@
 --!strict
 -- Conveyor shop panel (approved mockup 02): your 5-card belt with payback text, a NEW sticker, can't-afford /
--- sold / base-full states, odds behind the "i", the plaza drop banner, and a closed-for-the-night state.
+-- sold / base-full states, odds behind the "i", and a closed-for-the-night state. Lists the shared hub carpet.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -326,40 +326,6 @@ local function ShopPanel(scope: Scope, store: Store.Store): Instance
 						color = fg,
 						position = UDim2.new(0, 86, 1, -38),
 						anchor = Vector2.new(0, 0.5),
-					}),
-					-- plaza drop banner
-					Pill(scope, {
-						size = UDim2.fromOffset(560, 50),
-						anchor = Vector2.new(1, 0.5),
-						position = UDim2.new(1, -30, 1, -38),
-						color = Theme.yellow,
-						visible = scope:Computed(function(use)
-							return use(store.plazaDrop) ~= nil and not use(showOdds) and not use(isNight)
-						end),
-						children = {
-							scope:New("TextButton")({
-								Text = "",
-								BackgroundTransparency = 1,
-								Size = UDim2.fromScale(1, 1),
-								[Fusion.OnEvent("Activated")] = close, -- the world marker shows the way
-							}),
-							Text(scope, {
-								text = scope:Computed(function(use)
-									local drop = use(store.plazaDrop)
-									if not drop then
-										return ""
-									end
-									local species = Config.Species.byId[drop.listing.speciesId]
-									local left = Format.clock(drop.endsAt - use(store.now))
-									return `PLAZA DROP: {drop.listing.rarity} {species.displayName} · first to buy wins · {left}`
-								end),
-								size = 18,
-								color = Theme.ink,
-								outline = false,
-								position = UDim2.fromScale(0.5, 0.5),
-								anchor = Vector2.new(0.5, 0.5),
-							}),
-						},
 					}),
 				},
 			}),

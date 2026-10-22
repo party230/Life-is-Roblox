@@ -60,12 +60,23 @@ describe("Plots", function()
 	end)
 
 	it("finds ring neighbours with wraparound", function()
+		local n = Config.Game.PLOT_COUNT
+		expect(n).to.equal(12) -- 12 bases (D38)
 		local a, b = Plots.neighbours(1)
-		expect(a).to.equal(8)
+		expect(a).to.equal(n)
 		expect(b).to.equal(2)
-		local c, d = Plots.neighbours(8)
-		expect(c).to.equal(7)
+		local c, d = Plots.neighbours(n)
+		expect(c).to.equal(n - 1)
 		expect(d).to.equal(1)
+	end)
+
+	it("puts every gate within a 10-15 s walk of the carpet", function()
+		local L = Config.Layout
+		local walk = L.GATE_RADIUS - (L.CARPET.radius + L.CARPET.width / 2)
+		local seconds = walk / 16 -- default WalkSpeed
+		expect(seconds >= 10 and seconds <= 15).to.equal(true)
+		-- the gate sits GATE_RADIUS from the hub: plot centre minus half its depth
+		expect(L.PLOT_RING_RADIUS - L.PLOT_DEPTH / 2).to.equal(L.GATE_RADIUS)
 	end)
 
 	it("keeps plots from overlapping", function()

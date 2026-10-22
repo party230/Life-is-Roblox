@@ -86,7 +86,7 @@ local function assign(player: Player, index: number): boolean
 	deadlines[player] = nil
 	local r = refs[index]
 	-- Roblox display names are already filtered; base names typed by players will go through TextService.
-	r.signLabel.Text = string.upper(player.DisplayName) .. "'S BASE"
+	r.signLabel.Text = `{player.DisplayName}'s Base`
 	r.model:SetAttribute("OwnerUserId", player.UserId)
 	spawnAtPlot(player)
 	BaseService.assigned:fire(player, r)
@@ -122,15 +122,7 @@ local function autoAssign(player: Player)
 		assign(player, fallback)
 	else
 		-- Server is full of plots (shouldn't happen with MaxPlayers = PLOT_COUNT).
-		if Config.Game.VERTICAL_SLICE then
-			Remotes.Notify:fireClient(
-				player,
-				"warn",
-				"The vertical slice has one base and it's taken. You can still explore!"
-			)
-		else
-			player:Kick("This server has no free bases. Please try another server.")
-		end
+		player:Kick("This server has no free bases. Please try another server.")
 	end
 end
 
@@ -143,7 +135,7 @@ local function release(player: Player)
 	end
 	owners[index] = nil
 	local r = refs[index]
-	r.signLabel.Text = "FREE PLOT"
+	r.signLabel.Text = "FREE BASE"
 	r.model:SetAttribute("OwnerUserId", nil)
 	BaseService.released:fire(player, r)
 	broadcast()
@@ -151,7 +143,7 @@ end
 
 function BaseService.init()
 	refs = Builder.build()
-	-- everyone carries the Bonk bat (style reference); bonking itself arrives in Phase 3
+	-- everyone carries the Bonk bat (style reference); it catches runaways, stealing arrives in Phase 3
 	if not StarterPack:FindFirstChild("Bonk Bat") then
 		Bat.build().Parent = StarterPack
 	end

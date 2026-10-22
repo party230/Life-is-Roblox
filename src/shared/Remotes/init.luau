@@ -29,13 +29,6 @@ export type ShopState = {
 	open: boolean,
 }
 
-export type PlazaDropState = {
-	listing: Types.PublicListing,
-	endsAt: number, -- server time
-	x: number,
-	z: number,
-}
-
 export type PlotState = {
 	owners: { number }, -- index -> owner UserId, 0 = free
 	ownerNames: { string }, -- index -> display name, "" = free
@@ -59,7 +52,6 @@ local Remotes = {
 	ClientReady = Net.clientEvent("ClientReady", Guard.args(), { burst = 2, perSecond = 0.1 }) :: Net.ClientEvent<>,
 	PickPlot = Net.clientEvent("PickPlot", Guard.args(plotIndex), { burst = 3, perSecond = 1 }) :: Net.ClientEvent<number>,
 	BuyListing = Net.clientEvent("BuyListing", Guard.args(listingId), { burst = 4, perSecond = 2 }) :: Net.ClientEvent<string>,
-	BuyPlazaDrop = Net.clientEvent("BuyPlazaDrop", Guard.args(listingId), { burst = 3, perSecond = 2 }) :: Net.ClientEvent<string>,
 	BuyEgg = Net.clientEvent("BuyEgg", Guard.args(eggId), { burst = 3, perSecond = 1 }) :: Net.ClientEvent<string>,
 	HatchEgg = Net.clientEvent("HatchEgg", Guard.args(Guard.guid), { burst = 3, perSecond = 2 }) :: Net.ClientEvent<string>,
 	-- Studio only (ignored on live servers): force Day or Night lighting/state for the vertical slice.
@@ -74,7 +66,6 @@ local Remotes = {
 	CashUpdate = Net.serverEvent("CashUpdate", true) :: Net.ServerEvent<number, number, number>, -- cash, uncollected, perSec
 	CycleState = Net.serverEvent("CycleState") :: Net.ServerEvent<CycleState>,
 	ShopState = Net.serverEvent("ShopState") :: Net.ServerEvent<ShopState>,
-	PlazaDrop = Net.serverEvent("PlazaDrop") :: Net.ServerEvent<PlazaDropState?>,
 	PlotState = Net.serverEvent("PlotState") :: Net.ServerEvent<PlotState>,
 	HatchResult = Net.serverEvent("HatchResult") :: Net.ServerEvent<HatchResult>,
 	Notify = Net.serverEvent("Notify") :: Net.ServerEvent<NotifyKind, string>,

@@ -12,8 +12,8 @@ local Income = require(ReplicatedStorage.Shared.Logic.Income)
 local Nameplate = {}
 
 local STROKE = Color3.new(0, 0, 0)
-local WIDTH_STUDS = 8
-local LINE_STUDS = 0.95 -- height of a weight-1 line, in studs (world-scaled like the style reference)
+local WIDTH_STUDS = Config.Layout.NAMEPLATE_WIDTH
+local LINE_STUDS = Config.Layout.NAMEPLATE_LINE -- height of a weight-1 line, in studs (world-scaled)
 local INCOME_COLOR = Color3.fromHex("#FFE34D")
 local PRICE_COLOR = Color3.fromHex("#5CFF6B")
 
@@ -103,7 +103,7 @@ function Nameplate.attach(
 	gui.Size = UDim2.fromScale(WIDTH_STUDS, total * LINE_STUDS)
 	gui.SizeOffset = Vector2.new(0, 0.5) -- grow upward from the attachment
 	gui.LightInfluence = 0
-	gui.MaxDistance = 120
+	gui.MaxDistance = Config.Layout.NAMEPLATE_MAX_DISTANCE -- the owner's client raises this for their own
 	gui.AlwaysOnTop = false
 	local layout = Instance.new("UIListLayout")
 	layout.HorizontalAlignment = Enum.HorizontalAlignment.Center

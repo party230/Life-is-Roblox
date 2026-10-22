@@ -49,16 +49,16 @@ local Game = {
 	SHIELD_POST_COOLDOWN = 120,
 
 	-- Server
-	MAX_PLAYERS = 8,
+	MAX_PLAYERS = 12, -- one per base (D38)
 
-	-- Vertical slice (Phase 1 redo): one base, plaza stall, carpet spawns only characters that have models,
-	-- and the world builds a single plot. Set false once the slice is approved.
+	-- Vertical slice: auto-claim a base on join, freeze the clock at midday (N toggles Day/Night in Studio),
+	-- boosted variant odds, and only characters that have models spawn. Set false once the slice is approved.
 	VERTICAL_SLICE = true,
 	REQUIRE_BUILT_MODELS = true, -- only characters with a model can spawn (others wait for art)
 	STUDIO_DEV_CASH = 1_000_000, -- Studio only (separate DataStore): top cash up to this on join
 
 	-- Joining / plots
-	PLOT_COUNT = 8,
+	PLOT_COUNT = 12,
 	PLOT_PICK_SECONDS = 10, -- auto-assign (next to a friend if possible) if the player hasn't picked
 	NIGHT_JOIN_SHIELD = true, -- PROPOSED (Q11): a base claimed at night is shielded until dawn
 
@@ -74,8 +74,8 @@ local Game = {
 	INCOME_TICK_SECONDS = 1,
 
 	-- Escape run (Phase 3)
-	PLAZA_SHORTCUT_RESETS_SPEED = true, -- cutting through the plaza resets the +1 stack to base speed
-	PLAZA_SHORTCUT_ALERTS_OWNER = true, -- the carried brainrot glows and its owner is told
+	HUB_SHORTCUT_RESETS_SPEED = true, -- cutting through the hub resets the +1 stack to base speed
+	HUB_SHORTCUT_ALERTS_OWNER = true, -- the carried brainrot glows and its owner is told
 	LANE_EXITS_SEAL_AT_DUSK = true, -- and ferals only walk on open ground
 }
 

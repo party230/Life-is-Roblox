@@ -27,7 +27,6 @@ export type Store = {
 	listings: V<{ Types.PublicListing }>,
 	nextRotationAt: V<number>,
 	shopOpen: V<boolean>,
-	plazaDrop: V<Remotes.PlazaDropState?>,
 	plot: V<Remotes.PlotState?>,
 	toast: V<Toast?>,
 	shopVisible: V<boolean>,
@@ -54,7 +53,6 @@ function Store.new(scope: Scope): Store
 		listings = scope:Value({}) :: any,
 		nextRotationAt = scope:Value(0) :: any,
 		shopOpen = scope:Value(true) :: any,
-		plazaDrop = scope:Value(nil :: Remotes.PlazaDropState?) :: any,
 		plot = scope:Value(nil :: Remotes.PlotState?) :: any,
 		toast = scope:Value(nil :: Toast?) :: any,
 		shopVisible = scope:Value(false) :: any,
@@ -101,12 +99,6 @@ function Store.new(scope: Scope): Store
 			store.listings:set(state.listings)
 			store.nextRotationAt:set(state.nextRotationAt)
 			store.shopOpen:set(state.open)
-		end)
-	)
-	table.insert(
-		scope,
-		Remotes.PlazaDrop:connect(function(state)
-			store.plazaDrop:set(state)
 		end)
 	)
 	table.insert(

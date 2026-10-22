@@ -84,6 +84,16 @@ function BrainrotService.tiers(player: Player): number
 	return Entitlements.extraSlotTiers(player)
 end
 
+-- Room on a pedestal or in storage.
+function BrainrotService.hasRoom(player: Player): boolean
+	local data = DataService.get(player)
+	return data ~= nil
+		and (
+			Slots.firstFree(data, BrainrotService.tiers(player)) ~= nil
+			or Slots.storageCount(data) < Config.Game.STORAGE_SLOTS
+		)
+end
+
 function BrainrotService.hasFreePedestal(player: Player): boolean
 	local data = DataService.get(player)
 	return data ~= nil and Slots.firstFree(data, BrainrotService.tiers(player)) ~= nil

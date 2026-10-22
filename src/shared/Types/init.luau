@@ -93,6 +93,8 @@ export type PublicListing = {
 	price: number,
 	incomePerSec: number,
 	sold: boolean,
+	featured: boolean?, -- the guaranteed Rare+ featured spawn
+	runaway: boolean?, -- a runaway that rejoined the carpet (anyone can buy it)
 }
 
 return {}

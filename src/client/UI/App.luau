@@ -16,7 +16,6 @@ local Hud = require(script.Parent.Components.Hud)
 local EggsPanel = require(script.Parent.Components.EggsPanel)
 local ShopPanel = require(script.Parent.Components.ShopPanel)
 local Store = require(script.Parent.Store)
-local Text = require(script.Parent.Components.Text)
 local Theme = require(script.Parent.Theme)
 
 type Scope = Fusion.Scope<typeof(Fusion)>
@@ -59,37 +58,6 @@ end
 
 local MIN_SCALE = 0.45
 local MAX_SCALE = 1.3
-
--- World marker over the plaza belt while a plaza drop is live ("tap the banner to find it").
-local function PlazaMarker(scope: Scope, store: Store.Store, parent: Instance)
-	task.spawn(function()
-		local world = workspace:WaitForChild("World", 30)
-		local belt = world and world:WaitForChild("PlazaDropBelt", 30)
-		if not belt then
-			return
-		end
-		scope:New("BillboardGui")({
-			Name = "PlazaDropMarker",
-			Adornee = belt,
-			AlwaysOnTop = true,
-			Size = UDim2.fromOffset(220, 60),
-			StudsOffsetWorldSpace = Vector3.new(0, 9, 0),
-			Enabled = scope:Computed(function(use)
-				return use(store.plazaDrop) ~= nil
-			end),
-			Parent = parent,
-			[Fusion.Children] = {
-				Text(scope, {
-					text = "PLAZA DROP ▼",
-					size = 30,
-					color = Theme.yellow,
-					position = UDim2.fromScale(0.5, 0.5),
-					anchor = Vector2.new(0.5, 0.5),
-				}),
-			},
-		})
-	end)
-end
 
 function App.mount(): Store.Store
 	local player = Players.LocalPlayer
@@ -140,9 +108,8 @@ function App.mount(): Store.Store
 			}),
 		},
 	})
-	PlazaMarker(scope, store, playerGui)
 
-	-- Shop stalls: prompts tagged with an "Opens" attribute open their screen (e.g. the plaza Egg Stall).
+	-- Shop stalls: prompts tagged with an "Opens" attribute open their screen (the hub Egg and Food shops).
 	table.insert(
 		scope,
 		ProximityPromptService.PromptTriggered:Connect(function(prompt)

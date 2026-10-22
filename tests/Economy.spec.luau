@@ -125,10 +125,10 @@ describe("ShopStock", function()
 		end
 	end)
 
-	it("plaza drops are always Rare or better", function()
+	it("featured carpet spawns are always Rare or better", function()
 		local rng = lcg(21)
 		for i = 1, 200 do
-			local drop = ShopStock.plazaDrop(rng, `d{i}`)
+			local drop = ShopStock.featured(rng, `f{i}`)
 			expect(drop).to.be.ok()
 			expect(Config.Rarities.byId[(drop :: any).rarity].order >= 3).to.equal(true)
 		end

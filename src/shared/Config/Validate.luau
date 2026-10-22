@@ -146,8 +146,8 @@ function Validate.run(config: any): Result
 		end
 	end
 
-	checkRarityWeights("Shop.PLAZA_DROP_RARITY_WEIGHTS", config.Shop.PLAZA_DROP_RARITY_WEIGHTS)
-	checkRollable("Shop.PLAZA_DROP_RARITY_WEIGHTS", config.Shop.PLAZA_DROP_RARITY_WEIGHTS)
+	checkRarityWeights("Shop.FEATURED_RARITY_WEIGHTS", config.Shop.FEATURED_RARITY_WEIGHTS)
+	checkRollable("Shop.FEATURED_RARITY_WEIGHTS", config.Shop.FEATURED_RARITY_WEIGHTS)
 	if #config.Layout.SLOTS ~= g.MAX_SLOTS then
 		err(`Layout.SLOTS has {#config.Layout.SLOTS} slots but MAX_SLOTS is {g.MAX_SLOTS}`)
 	end

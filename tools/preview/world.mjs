@@ -9,14 +9,15 @@ import { fileURLToPath } from "node:url";
 const here = path.dirname(fileURLToPath(import.meta.url));
 const [, , input, outDir, shotsFile] = process.argv;
 
-// Camera shots. Plot-local coordinates: x across the plot, y up, -z toward the gate and the plaza.
+// Camera shots. Plot-local unless `world`: x across the base, y up, -z toward the gate and the hub.
 const SHOTS = [
-	{ name: "world-base-day", mode: "day", camera: [26, 34, -66], target: [0, 1, 4] },
-	{ name: "world-carpet-day", mode: "day", camera: [15, 10, -20], target: [0, 4, 6], fov: 50, labelDistance: 60 },
-	{ name: "world-stall-day", mode: "day", stall: true },
-	{ name: "world-overview-day", mode: "day", camera: [150, 170, -40], target: [0, 0, -105], fov: 50, shadowRadius: 220, labelDistance: 0 },
-	{ name: "world-base-night", mode: "night", camera: [26, 34, -66], target: [0, 1, 4] },
-	{ name: "world-carpet-night", mode: "night", camera: [15, 10, -20], target: [0, 4, 6], fov: 50, labelDistance: 60 },
+	{ name: "world-map-topdown", mode: "day", world: true, camera: [0, 900, 0], target: [0, 0, 0], ortho: 390, width: 1600, height: 1600, labelDistance: 0, shadowRadius: 420 },
+	{ name: "world-hub-day", mode: "day", world: true, camera: [-112, 56, 4], target: [34, 0, 0], labelDistance: 175, shadowRadius: 140 },
+	{ name: "world-carpet-day", mode: "day", world: true, camera: [6, 13, -12], target: [54, 5, 28], fov: 60, labelDistance: 90 },
+	{ name: "world-base-day", mode: "day", camera: [36, 56, -74], target: [0, 0, 6], labelDistance: 130 },
+	{ name: "world-base-locked-day", mode: "day", frame: "neighbourBase", camera: [36, 56, -74], target: [0, 0, 6], labelDistance: 130 },
+	{ name: "world-pedestals-day", mode: "day", camera: [-2, 12, -40], target: [0, 4, -10], fov: 62, labelDistance: 80 },
+	{ name: "world-hub-night", mode: "night", world: true, camera: [-112, 56, 4], target: [34, 0, 0], labelDistance: 175, shadowRadius: 140, maxLights: 14 },
 ];
 
 const FILES = {
@@ -26,22 +27,6 @@ const FILES = {
 	"/world.json": [path.resolve(input), "application/json"],
 	"/Fredoka.ttf": [path.join(here, "../mockups/fonts/Fredoka-VF.ttf"), "font/ttf"],
 };
-
-// The stall faces the plaza centre; frame it from the plaza side.
-function stallShot(data, shot) {
-	const label = data.billboards.find((b) => b.lines.some((l) => l.text === "Egg Shop"));
-	const [x, y, z] = label.pos;
-	const len = Math.hypot(x, z);
-	const ux = -x / len, uz = -z / len; // toward the plaza centre
-	return {
-		...shot,
-		world: true,
-		camera: [x + ux * 30 - uz * 12, 12, z + uz * 30 + ux * 12],
-		target: [x, y - 6, z],
-		fov: 50,
-		labelDistance: 80,
-	};
-}
 
 let exe = process.env.CHROMIUM_PATH;
 const root = process.env.PLAYWRIGHT_BROWSERS_PATH || "/opt/pw-browsers";

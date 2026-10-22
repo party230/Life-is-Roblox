@@ -37,7 +37,14 @@ function ShopStock.priceFor(rarity: string, variant: string, rng: Roll.Rng, mult
 	return ShopStock.nicePrice(base * v.priceMult * (1 + jitter))
 end
 
-local function make(id: string, speciesId: string, variant: string, rng: Roll.Rng, mult: number?): Listing
+-- A listing for a given character and variant (also used for runaways rejoining the carpet).
+function ShopStock.listingFor(
+	id: string,
+	speciesId: string,
+	variant: string,
+	rng: Roll.Rng,
+	mult: number?
+): Listing
 	local rarity = Config.Species.byId[speciesId].rarity
 	return {
 		id = id,
@@ -66,16 +73,17 @@ function ShopStock.carpetListing(rng: Roll.Rng, id: string, luck: number?): List
 	if not speciesId then
 		return nil
 	end
-	return make(id, speciesId, variant, rng)
+	return ShopStock.listingFor(id, speciesId, variant, rng)
 end
 
-function ShopStock.plazaDrop(rng: Roll.Rng, id: string): Listing?
-	local rarity = Roll.rarity(Config.Shop.PLAZA_DROP_RARITY_WEIGHTS, rng)
+-- Featured spawn: a guaranteed Rare+ (the old plaza drop, now on the shared carpet).
+function ShopStock.featured(rng: Roll.Rng, id: string): Listing?
+	local rarity = Roll.rarity(Config.Shop.FEATURED_RARITY_WEIGHTS, rng)
 	local speciesId = rarity and Roll.species(rarity, rng)
 	if not speciesId then
 		return nil
 	end
-	return make(id, speciesId, Roll.variant(rng), rng, Config.Shop.PLAZA_DROP_PRICE_MULT)
+	return ShopStock.listingFor(id, speciesId, Roll.variant(rng), rng, Config.Shop.FEATURED_PRICE_MULT)
 end
 
 return ShopStock
