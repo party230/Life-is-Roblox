@@ -1,0 +1,25 @@
+# Tooling
+.tools/
+roblox.yml
+roblox.yml.lock
+sourcemap.json
+
+# Wally
+Packages/
+ServerPackages/
+DevPackages/
+wally.lock.bak
+
+# Build output
+*.rbxl
+*.rbxlx
+*.rbxm
+*.rbxmx
+!assets/**/*.rbxm
+build/
+
+# Editors / OS
+.DS_Store
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json

@@ -1,0 +1,11 @@
+[package]
+name = "party230/rot-shift"
+version = "0.1.0"
+registry = "https://github.com/UpliftGames/wally-index"
+realm = "shared"
+
+[dependencies]
+Fusion = "elttob/fusion@0.3.0"
+
+[server-dependencies]
+# ProfileStore is vendored in src/server/Vendor (not published on Wally).

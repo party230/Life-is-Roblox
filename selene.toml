@@ -1,0 +1,6 @@
+std = "rotshift+roblox"
+exclude = ["src/server/Vendor/*", "Packages/*", "ServerPackages/*"]
+
+[lints]
+# Strict mode + luau-lsp already cover shadowing; keep selene focused.
+shadowing = "allow"

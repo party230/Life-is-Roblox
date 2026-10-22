@@ -1,0 +1,7 @@
+# Project overlay on selene's roblox std (selene.toml: std = "rotshift+roblox").
+# Roblox and Lune both support require-by-string ("./X", "@self/X"); selene's std predates it.
+---
+globals:
+  require:
+    args:
+      - type: any
