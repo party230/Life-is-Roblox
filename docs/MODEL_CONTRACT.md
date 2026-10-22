@@ -37,7 +37,7 @@ model.
 ## Swapping in a MeshPart version
 
 1. Build or import the character in Studio as a `Model` of MeshParts (no scripts). Name the eye parts
-   `Eye…` and pupils `Pupil…` so Dark gets red eyes. The largest part becomes `Body`. Mark other parts
+   `Eye…` and pupils `Pupil…` so Evil gets glowing red eyes. The largest part becomes `Body`. Mark other parts
    with a `Role` attribute if you want to control how variants recolour them.
 2. Right-click → **Save to File** as `assets/models/<name>.rbxm`. Rojo syncs it to
    `ReplicatedStorage.Assets.Brainrots.<name>`.

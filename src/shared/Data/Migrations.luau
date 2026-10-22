@@ -16,6 +16,12 @@ local MUTATION_TO_VARIANT: { [string]: string } = {
 	Mega = "Normal",
 }
 
+local VARIANT_RENAMES_V3: { [string]: string } = {
+	Gold = "Normal",
+	Diamond = "Normal",
+	Dark = "Evil",
+}
+
 Migrations.steps = {
 	-- 1 -> 2: brainrot.mutation -> brainrot.variant. Old original-species ids are kept as-is: they resolve to
 	-- their rarity's placeholder at runtime (same path as a disabled character), so nothing is lost.
@@ -25,6 +31,12 @@ Migrations.steps = {
 				b.variant = MUTATION_TO_VARIANT[b.mutation or "None"] or "Normal"
 			end
 			b.mutation = nil
+		end
+	end,
+	-- 2 -> 3 (D36): Gold and Diamond were removed, so their owners get a Normal one; Dark is now Evil.
+	function(data: { [string]: any })
+		for _, b in data.brainrots or {} do
+			b.variant = VARIANT_RENAMES_V3[b.variant] or b.variant or "Normal"
 		end
 	end,
 } :: { Step }

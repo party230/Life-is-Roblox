@@ -34,8 +34,9 @@
 2. Close-up of a brainrot **walking on the carpet**, nameplate readable.
 3. One shot of each character: **Tralalero Tralala, Tung Tung Tung Sahur, Bombardiro Crocodilo,
    Ballerina Cappuccina, Brr Brr Patapim, Cappuccino Assassino** (close enough to judge the likeness).
-4. Each **variant** you catch: **Gold, Diamond, Rainbow** (try to catch it walking, with its trail),
-   **Dark** (red eyes, smoke). Variant odds are boosted in the slice, so you'll see them quickly.
+4. Each **variant** you catch: **Rainbow** (colour bands scrolling upward; try to catch it walking, with
+   its trail) and **Evil** (black, glowing red eyes, red lightning flickering around it). Variant odds are
+   boosted in the slice, so you'll see them quickly.
 5. The **Buy prompt** and the brainrot **on a pedestal** after buying (rim lit).
 6. The **day HUD** full screen, ideally once on a phone-sized window too: Studio → Test → Device emulator.
 7. The **Shop** panel (Shop button) and the **Eggs** screen (Egg Stall prompt).

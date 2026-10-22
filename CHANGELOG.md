@@ -1,5 +1,15 @@
 # Changelog
 
+## Variant redesign
+
+- Variants are now **Normal, Rainbow (×4) and Evil (×6)**; Gold and Diamond are gone, and Normal takes
+  their odds (D36).
+- Rainbow: 7 bright bands, top to bottom, scrolling upward. Evil: black, glowing red eyes, red lightning
+  flickering around it (client-only), red glow.
+- Save migration v2 → v3 (Gold/Diamond → Normal, Dark → Evil) with tests. New tests for the Rainbow bands,
+  the Evil look and the lightning generator.
+- Previews re-rendered with the new variants.
+
 ## Style reference pass (awaiting Studio feedback)
 
 - **World matched to `assets/reference/style.png`:**

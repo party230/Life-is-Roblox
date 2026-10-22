@@ -193,3 +193,16 @@ the images are attached or committed as `assets/reference/<id>.png`. Cappuccino 
 the 6th slice character, built **provisionally** from the commonly known version. It gets rebuilt from
 its reference once that arrives.
 
+## Variant redesign (owner feedback on the mockup)
+
+**D36. Variants: Normal, Rainbow, Evil** (overrides D22's five variants and D23's "Dark").
+- **Gold and Diamond are removed.** Their odds went to Normal (weight 82 + 11 + 5 = 98). Rainbow keeps
+  ×4 (weight 1.6) and Evil ×6 (weight 0.4). The nameplate says "Evil".
+- **Rainbow:** parts are split top-to-bottom into 7 bright bands (`RAINBOW_BANDS`), and the client scrolls
+  them upward. A character made of one big part shows one colour at a time, because a part has one colour.
+- **Evil:** near-black body (`EVIL_PALETTE`), Neon red eyes, a steady red PointLight, and red lightning that
+  re-strikes every 0.08–0.22 s around the model. The lightning is client-only: pooled Neon parts placed by
+  the pure `World/EvilBolts` generator, so nothing replicates. Rogue stays distinct (shake, angry icon, red
+  outline, no colour change).
+- **Saves migrate v2 → v3:** Gold/Diamond → Normal, Dark → Evil. The brainrot itself is kept.
+

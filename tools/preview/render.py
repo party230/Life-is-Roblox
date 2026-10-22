@@ -139,14 +139,14 @@ def main():
         data = [m for m in data if m["name"] != "placeholder"]
     else:
         data = [m for m in data if m.get("variant", "Normal") == "Normal"]
-    cols = 5 if variants_mode else 3
+    cols = 3
     cell_w, cell_h = (360, 380) if variants_mode else (520, 520)
     rows = math.ceil(len(data) / cols)
     W, H = cols * cell_w, rows * cell_h + 60
     svg = [f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" viewBox="0 0 {W} {H}">',
            f'<rect width="{W}" height="{H}" fill="#9fd4ff"/>',
            '<text x="24" y="40" font-family="sans-serif" font-size="26" font-weight="700" fill="#1B1530">' +
-           ('Rot Shift: all 5 variants (headless preview; Rainbow animates in game)' if variants_mode else 'Rot Shift: part-based character models (headless preview, Normal variant)') + '</text>']
+           ('Normal, Rainbow, Evil (bands scroll and lightning flickers in game)' if variants_mode else 'Rot Shift: part-based character models (headless preview, Normal variant)') + '</text>']
     for i, m in enumerate(data):
         cx = (i % cols) * cell_w + cell_w / 2
         cy = (i // cols) * cell_h + 60 + cell_h - 90

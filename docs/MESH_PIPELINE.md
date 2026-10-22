@@ -16,7 +16,7 @@ control, light and fast to iterate on, but blocky. For higher-fidelity versions,
 6. **Plug in**: add a builder in `Models/` that clones the package (or loads the asset id from
    `Config/Species.luau` `model = "mesh:<assetId>"`) and adds our Root, attachments (Nameplate, Vfx,
    Trail) and tags. Variants keep working: they recolour via SurfaceAppearance.Color / a swapped texture
-   set (Gold, Diamond, Dark get their own texture variants; Rainbow tints).
+   set (Evil gets its own texture variant; Rainbow tints).
 7. **Animations**: author idle/walk in Studio's Animation Editor or Blender, upload, and reference the ids
    in Config. The client animator switches from code bobbing to `Animator:LoadAnimation`.
 

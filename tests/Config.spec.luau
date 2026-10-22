@@ -75,13 +75,18 @@ describe("Config", function()
 		end
 	end)
 
-	it("has the 5 variants with the requested multipliers", function()
+	it("has Normal, Rainbow and Evil with the requested multipliers (D36)", function()
 		local v = Config.Variants.byId
+		expect(#Config.Variants.list).to.equal(3)
 		expect(v.Normal.incomeMult).to.equal(1)
-		expect(v.Gold.incomeMult).to.equal(1.5)
-		expect(v.Diamond.incomeMult).to.equal(2)
 		expect(v.Rainbow.incomeMult).to.equal(4)
-		expect(v.Dark.incomeMult).to.equal(6)
+		expect(v.Evil.incomeMult).to.equal(6)
+		expect(v.Evil.displayName).to.equal("Evil")
+		expect(v.Gold).to.equal(nil)
+		expect(v.Diamond).to.equal(nil)
+		expect(v.Dark).to.equal(nil)
+		-- Normal took over Gold's and Diamond's odds (82 + 11 + 5)
+		expect(v.Normal.weight).to.equal(98)
 	end)
 
 	it("lists every product from the monetisation table", function()

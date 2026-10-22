@@ -5,7 +5,7 @@
 local Config = require("../Config")
 local Types = require("../Types")
 
-local CURRENT_VERSION = 2
+local CURRENT_VERSION = 3
 
 local function create(): Types.PlayerData
 	return {

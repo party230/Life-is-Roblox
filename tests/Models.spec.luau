@@ -5,7 +5,9 @@ local Harness = require("./Harness")
 local describe, it, expect = Harness.describe, Harness.it, Harness.expect
 
 local Config = require("../src/shared/Config")
+local EvilBolts = require("../src/shared/World/EvilBolts")
 local Kit = require("../src/shared/World/Models/Kit")
+local VariantLook = require("../src/shared/World/VariantLook")
 
 local ROLES = { skin = true, eye = true, pupil = true, detail = true, glow = true }
 
@@ -46,7 +48,7 @@ local function checkContract(model: Model)
 			end
 		end
 	end
-	-- the Dark variant needs eyes to turn red
+	-- the Evil variant needs eyes to turn red
 	expect(eyes >= 2).to.equal(true)
 	expect(pupils >= 2).to.equal(true)
 end
@@ -116,6 +118,73 @@ describe("Character models", function()
 		local root = model.PrimaryPart :: BasePart
 		expect((root.CFrame * root.PivotOffset).Position.Y).to.be.near(0, 1e-4) -- feet at the lowest point
 		expect(root.CFrame.Position.X).to.be.near(10, 1e-4)
+	end)
+end)
+
+describe("Variant looks (D36)", function()
+	local build = require("../src/shared/World/Models/Characters/tung_tung_tung_sahur") :: any
+
+	it("Rainbow splits the body into every band, top band first", function()
+		local model = build() :: Model
+		VariantLook.apply(model, "Rainbow")
+		local seen: { [number]: boolean } = {}
+		local topY, topBand = -math.huge, -1
+		for _, d in model:GetDescendants() do
+			local band = d:GetAttribute("RainbowBand") :: number?
+			if d:IsA("BasePart") and band then
+				seen[band] = true
+				if d.CFrame.Position.Y > topY then
+					topY, topBand = d.CFrame.Position.Y, band
+				end
+				local role = d:GetAttribute("Role")
+				expect(role ~= "eye" and role ~= "pupil").to.equal(true)
+			end
+		end
+		for b = 0, #Config.Variants.RAINBOW_BANDS - 1 do
+			expect(seen[b]).to.equal(true)
+		end
+		expect(topBand).to.equal(0)
+	end)
+
+	it("Rainbow colours scroll upward through the bands", function()
+		local bands = Config.Variants.RAINBOW_BANDS
+		-- the colour on band 1 now is on band 0 one step later
+		expect(VariantLook.rainbowColor(0, 1)).to.equal(VariantLook.rainbowColor(1, 0))
+		expect(VariantLook.rainbowColor(#bands - 1, 1)).to.equal(Color3.fromHex(bands[1]))
+	end)
+
+	it("Evil is black with glowing red eyes", function()
+		local model = build() :: Model
+		VariantLook.apply(model, "Evil")
+		for _, d in model:GetDescendants() do
+			if d:IsA("BasePart") and d.Name ~= "Root" then
+				local role = d:GetAttribute("Role")
+				if role == "eye" then
+					expect(d.Material).to.equal(Enum.Material.Neon)
+					expect(d.Color).to.equal(Color3.fromHex(Config.Variants.EVIL_EYE_COLOR))
+				elseif role ~= "pupil" then
+					local c = d.Color
+					expect(c.R + c.G + c.B < 0.35).to.equal(true) -- darkest EVIL_PALETTE shades
+				end
+			end
+		end
+	end)
+
+	it("Evil lightning stays close around the model", function()
+		local seed = 1
+		local function rng(): number
+			seed = (seed * 48271) % 2147483647
+			return seed / 2147483647
+		end
+		local size = Vector3.new(3, 6, 3)
+		local segs = EvilBolts.strike(rng, size, Config.Variants.EVIL_BOLTS)
+		expect(#segs > 0).to.equal(true)
+		expect(#segs <= EvilBolts.maxSegments(Config.Variants.EVIL_BOLTS)).to.equal(true)
+		for _, s in segs do
+			expect(s.length > 0).to.equal(true)
+			local p = s.cframe.Position
+			expect(math.abs(p.X) < size.X * 2.5 and math.abs(p.Y) < size.Y * 1.5).to.equal(true)
+		end
 	end)
 end)
 

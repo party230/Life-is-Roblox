@@ -3,7 +3,7 @@
 -- or mixed/sparse arrays. Bump PlayerData.version and add a migration when changing a saved shape.
 
 export type RarityId = "Common" | "Uncommon" | "Rare" | "Epic" | "Legendary" | "Mythic" | "Secret"
-export type VariantId = "Normal" | "Gold" | "Diamond" | "Rainbow" | "Dark"
+export type VariantId = "Normal" | "Rainbow" | "Evil"
 export type CyclePhase = "Day" | "Dusk" | "Night" | "DawnVote"
 
 export type Brainrot = {

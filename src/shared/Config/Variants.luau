@@ -2,7 +2,7 @@
 -- Variants (replace the Phase 0 mutations). Any character can roll one. The base design never changes;
 -- variants only add to it. Visual parameters are read by shared/World/Variants.
 
-export type VariantId = "Normal" | "Gold" | "Diamond" | "Rainbow" | "Dark"
+export type VariantId = "Normal" | "Rainbow" | "Evil"
 
 export type VariantDef = {
 	id: VariantId,
@@ -13,24 +13,9 @@ export type VariantDef = {
 	nameColor: string, -- nameplate colour for the variant line
 }
 
+-- D36: Gold and Diamond were removed (their odds went to Normal) and Dark became Evil.
 local list: { VariantDef } = {
-	{ id = "Normal", displayName = "", weight = 82, incomeMult = 1, priceMult = 1, nameColor = "#FFFFFF" },
-	{
-		id = "Gold",
-		displayName = "Gold",
-		weight = 11,
-		incomeMult = 1.5,
-		priceMult = 1.5,
-		nameColor = "#FFD23F",
-	},
-	{
-		id = "Diamond",
-		displayName = "Diamond",
-		weight = 5,
-		incomeMult = 2,
-		priceMult = 2,
-		nameColor = "#8FE3FF",
-	},
+	{ id = "Normal", displayName = "", weight = 98, incomeMult = 1, priceMult = 1, nameColor = "#FFFFFF" },
 	{
 		id = "Rainbow",
 		displayName = "Rainbow",
@@ -39,7 +24,7 @@ local list: { VariantDef } = {
 		priceMult = 4,
 		nameColor = "#FF8FE5",
 	},
-	{ id = "Dark", displayName = "Dark", weight = 0.4, incomeMult = 6, priceMult = 6, nameColor = "#B15CFF" },
+	{ id = "Evil", displayName = "Evil", weight = 0.4, incomeMult = 6, priceMult = 6, nameColor = "#FF3B3B" },
 }
 
 local byId: { [string]: VariantDef } = {}
@@ -50,12 +35,24 @@ end
 return table.freeze({
 	list = table.freeze(list),
 	byId = table.freeze(byId),
-	-- Visual tuning
-	GOLD_COLOR = "#E8B530",
-	DIAMOND_COLOR = "#9EE6FF",
-	DARK_PALETTE = { "#14101F", "#2A1740", "#3B1F5C" },
-	DARK_EYE_COLOR = "#FF2A2A",
-	RAINBOW_CYCLE_SECONDS = 3,
+	-- Rainbow: parts are split top-to-bottom into these bands, which scroll upward in game.
+	RAINBOW_BANDS = table.freeze({
+		"#FF3B3B",
+		"#FF9A1F",
+		"#FFE23D",
+		"#3EE05A",
+		"#2FA8FF",
+		"#8B5CFF",
+		"#FF5CD6",
+	}),
+	RAINBOW_CYCLE_SECONDS = 2.8, -- one full trip of a colour through all bands
+	-- Evil: black body, glowing red eyes, red lightning crackling around it.
+	EVIL_PALETTE = table.freeze({ "#050507", "#0E0E12", "#18181E" }),
+	EVIL_EYE_COLOR = "#FF1E1E",
+	EVIL_PUPIL_COLOR = "#FFC4C4",
+	EVIL_BOLT_COLOR = "#FF2A2A",
+	EVIL_BOLTS = 3, -- bolts visible at once
+	EVIL_BOLT_INTERVAL = table.freeze({ 0.08, 0.22 }), -- seconds between re-strikes (random in range)
 	-- Slice only: boosted variant odds on the carpet so every variant shows up while playtesting.
-	SLICE_WEIGHTS = table.freeze({ Normal = 40, Gold = 15, Diamond = 15, Rainbow = 15, Dark = 15 }),
+	SLICE_WEIGHTS = table.freeze({ Normal = 60, Rainbow = 20, Evil = 20 }),
 })

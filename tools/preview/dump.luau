@@ -37,8 +37,10 @@ end
 table.sort(names)
 table.insert(names, "placeholder")
 
+local Config = require("../../src/shared/Config")
+local EvilBolts = require("../../src/shared/World/EvilBolts")
 local VariantLook = require("../../src/shared/World/VariantLook")
-local VARIANTS = { "Normal", "Gold", "Diamond", "Rainbow", "Dark" }
+local VARIANTS = { "Normal", "Rainbow", "Evil" }
 
 for _, name in names do
 	for _, variant in VARIANTS do
@@ -50,6 +52,23 @@ for _, name in names do
 			else require(`../../src/shared/World/Models/Characters/{name}`)
 		local model = if name == "placeholder" then builder("#AA50FF") else builder()
 		VariantLook.apply(model, variant)
+		if variant == "Evil" then
+			-- one frozen strike of the client-side lightning
+			local seed = #name * 7919
+			local function rng()
+				seed = (seed * 48271) % 2147483647
+				return seed / 2147483647
+			end
+			local root = model.PrimaryPart
+			for _, seg in EvilBolts.strike(rng, root.Size, Config.Variants.EVIL_BOLTS) do
+				local p = Instance.new("Part")
+				p.Name = "Bolt"
+				p.Size = Vector3.new(0.09, 0.09, seg.length + 0.09)
+				p.CFrame = root.CFrame * seg.cframe
+				p.Color = Color3.fromHex(Config.Variants.EVIL_BOLT_COLOR)
+				p.Parent = model
+			end
+		end
 		local parts = {}
 		local partCount = 0
 		for _, d in model:GetDescendants() do

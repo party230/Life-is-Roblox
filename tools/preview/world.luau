@@ -228,6 +228,23 @@ local function place(model, cf)
 	end
 end
 
+-- One frozen strike of the Evil lightning (in game the client re-strikes it every few frames).
+local EvilBolts = load("src/shared/World/EvilBolts.luau")
+local function lightning(model)
+	if model:GetAttribute("Variant") ~= "Evil" then
+		return
+	end
+	local root = model.PrimaryPart
+	for _, seg in EvilBolts.strike(roll, root.Size, Config.Variants.EVIL_BOLTS) do
+		local p = Instance.new("Part")
+		p.Material = Enum.Material.Neon
+		p.Color = Color3.fromHex(Config.Variants.EVIL_BOLT_COLOR)
+		p.Size = Vector3.new(0.09, 0.09, seg.length + 0.09)
+		p.CFrame = root.CFrame * seg.cframe
+		p.Parent = model
+	end
+end
+
 local function rarityOf(id)
 	return Config.Species.byId[id].rarity
 end
@@ -237,7 +254,7 @@ local carpet = {
 	{ "tralalero_tralala", "Normal" },
 	{ "cappuccino_assassino", "Rainbow" },
 	{ "brr_brr_patapim", "Normal" },
-	{ "ballerina_cappuccina", "Dark" },
+	{ "ballerina_cappuccina", "Evil" },
 	{ "tung_tung_tung_sahur", "Normal" },
 	{ "bombardiro_crocodilo", "Rainbow" },
 }
@@ -251,12 +268,13 @@ for i, entry in carpet do
 	local pos = a.Position:Lerp(b.Position, t)
 	local hover = model:GetAttribute("Hover") or 0
 	place(model, CFrame.new(pos + Vector3.new(0, hover, 0)) * (a - a.Position))
+	lightning(model)
 	model.Parent = refs.carpetItems
 end
 
 -- Pedestals: a few already-owned brainrots.
 local owned = {
-	{ 1, "tung_tung_tung_sahur", "Dark" },
+	{ 1, "tung_tung_tung_sahur", "Evil" },
 	{ 2, "ballerina_cappuccina", "Normal" },
 	{ 3, "tralalero_tralala", "Rainbow" },
 	{ 4, "brr_brr_patapim", "Normal" },
@@ -269,6 +287,7 @@ for _, entry in owned do
 	local top = Builder.pedestalTop(refs, slot)
 	local hover = model:GetAttribute("Hover") or 0
 	place(model, top * CFrame.new(0, hover, 0))
+	lightning(model)
 	model.Parent = refs.brainrots
 	local rim = Builder.rim(refs, slot)
 	if rim then

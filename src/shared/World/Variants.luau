@@ -1,14 +1,15 @@
 --!strict
--- Applies a variant's look on top of a character's base design (D22). The base design never changes:
--- variants only recolour/re-material and add effects. Animated parts of variants (rainbow hue cycling,
--- the trail while walking, the Dark idle) are driven client-side by BrainrotAnimator via model tags.
+-- Applies a variant's look on top of a character's base design (D22, D36). The base design never changes:
+-- variants only recolour and add effects. Animated parts (rainbow band scrolling, the trail while walking,
+-- the Evil lightning and idle) are driven client-side by BrainrotAnimator via model tags.
 --
--- Rogue (loyalty state, Phase 4) must never look like Dark: Rogue = shaking + angry nameplate icon + red
--- outline, with NO colour change (D23).
+-- Rogue (loyalty state) must never look like Evil: Rogue = shaking + angry nameplate icon + red outline,
+-- with NO colour change (D23).
 
 local CollectionService = game:GetService("CollectionService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local Config = require(ReplicatedStorage.Shared.Config)
 local VariantLook = require(ReplicatedStorage.Shared.World.VariantLook)
 
 local Variants = {}
@@ -23,47 +24,8 @@ local function visualParts(model: Model): { BasePart }
 	return out
 end
 
-local function emitter(parent: Instance, props: { [string]: any }): ParticleEmitter
-	local e = Instance.new("ParticleEmitter")
-	for k, v in props do
-		(e :: any)[k] = v
-	end
-	e.Parent = parent
-	return e
-end
-
-local function gold(vfx: Attachment)
-	emitter(vfx, {
-		Name = "GoldSparkle",
-		Color = ColorSequence.new(Color3.fromRGB(255, 230, 120)),
-		LightEmission = 1,
-		Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.35), NumberSequenceKeypoint.new(1, 0) }),
-		Lifetime = NumberRange.new(0.6, 1.1),
-		Rate = 6,
-		Speed = NumberRange.new(0.5, 1.5),
-		SpreadAngle = Vector2.new(180, 180),
-	})
-end
-
-local function diamond(vfx: Attachment)
-	emitter(vfx, {
-		Name = "DiamondGlint",
-		Color = ColorSequence.new(Color3.new(1, 1, 1)),
-		LightEmission = 1,
-		Size = NumberSequence.new({
-			NumberSequenceKeypoint.new(0, 0),
-			NumberSequenceKeypoint.new(0.5, 0.5),
-			NumberSequenceKeypoint.new(1, 0),
-		}),
-		Lifetime = NumberRange.new(0.3, 0.5),
-		Rate = 2.5,
-		Speed = NumberRange.new(0, 0),
-		SpreadAngle = Vector2.new(180, 180),
-	})
-end
-
 local function rainbow(model: Model, root: BasePart)
-	-- the client cycles hues; the trail shows while walking
+	-- the client scrolls the colour bands; the trail shows while walking
 	local a0 = root:FindFirstChild("TrailA") :: Attachment?
 	local a1 = root:FindFirstChild("TrailB") :: Attachment?
 	if a0 and a1 then
@@ -88,20 +50,15 @@ local function rainbow(model: Model, root: BasePart)
 	CollectionService:AddTag(model, "RainbowVariant")
 end
 
-local function dark(model: Model, vfx: Attachment)
-	local smoke = Instance.new("Smoke")
-	smoke.Name = "DarkSmoke"
-	smoke.Color = Color3.fromRGB(60, 20, 90)
-	smoke.Opacity = 0.12
-	smoke.RiseVelocity = 1.5
-	smoke.Size = 1.5
-	smoke.Parent = model:FindFirstChild("Body") or vfx.Parent
+local function evil(model: Model, vfx: Attachment)
+	-- the lightning itself is client-side (BrainrotAnimator + EvilBolts); this is the steady red glow
 	local glowLight = Instance.new("PointLight")
-	glowLight.Color = Color3.fromRGB(255, 40, 40)
-	glowLight.Brightness = 0.6
-	glowLight.Range = 5
+	glowLight.Name = "EvilGlow"
+	glowLight.Color = Color3.fromHex(Config.Variants.EVIL_BOLT_COLOR)
+	glowLight.Brightness = 1.2
+	glowLight.Range = 9
 	glowLight.Parent = vfx
-	CollectionService:AddTag(model, "DarkVariant")
+	CollectionService:AddTag(model, "EvilVariant")
 end
 
 function Variants.apply(model: Model, variant: string)
@@ -111,19 +68,13 @@ function Variants.apply(model: Model, variant: string)
 		return
 	end
 	local vfx = root:FindFirstChild("Vfx") :: Attachment
-	if variant ~= "Rainbow" then
-		VariantLook.apply(model, variant) -- rainbow colours are animated client-side from the base colours
-	end
-	if variant == "Gold" then
-		gold(vfx)
-	elseif variant == "Diamond" then
-		diamond(vfx)
-	elseif variant == "Rainbow" then
+	VariantLook.apply(model, variant)
+	if variant == "Rainbow" then
 		rainbow(model, root)
-	elseif variant == "Dark" then
-		dark(model, vfx)
+	elseif variant == "Evil" then
+		evil(model, vfx)
 	end
-	-- remember the applied colours for client-side effects (rainbow cycles from these)
+	-- remember the applied colours (Rogue and other client effects restore from these)
 	for _, p in visualParts(model) do
 		p:SetAttribute("BaseColor", p.Color)
 	end

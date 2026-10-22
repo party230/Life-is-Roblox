@@ -1,13 +1,16 @@
 --!strict
 -- Client-side brainrot animation (cheap, no Animator assets needed): idle bob / sway / fly / twirl,
--- a waddle while walking the carpet, spinning propellers, rainbow hue cycling + trail, the Dark variant's
--- slow menacing idle, and the Rogue shake (Phase 4). Drives each model's Root.Anim Motor6D .Transform.
+-- a waddle while walking the carpet, spinning propellers, Rainbow band scrolling + trail, the Evil variant's
+-- slow menacing idle and red lightning (D36), and the Rogue shake (Phase 4). Drives each model's
+-- Root.Anim Motor6D .Transform. Lightning parts are client-only and never replicate.
 
 local CollectionService = game:GetService("CollectionService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
 local Config = require(ReplicatedStorage.Shared.Config)
+local EvilBolts = require(ReplicatedStorage.Shared.World.EvilBolts)
+local VariantLook = require(ReplicatedStorage.Shared.World.VariantLook)
 
 local BrainrotAnimator = {}
 
@@ -18,11 +21,23 @@ type Entry = {
 	rainbowParts: { BasePart },
 	trail: Trail?,
 	phase: number,
+	evil: boolean,
+	bolts: { BasePart }?, -- pooled lightning segments (Evil only, created on first strike)
+	nextStrike: number,
+	hideBoltsAt: number,
 }
 
 local entries: { [Model]: Entry } = {}
 local MAX_DISTANCE = 160
-local RAINBOW_HZ = 20
+local RAINBOW_HZ = 12
+local BOLT_VISIBLE_SECONDS = 0.07
+local BOLT_THICKNESS = 0.09
+
+local boltFolder: Folder? = nil
+local rng = Random.new()
+local function rand(): number
+	return rng:NextNumber()
+end
 
 local function track(model: Instance)
 	if not model:IsA("Model") or entries[model] then
@@ -37,12 +52,7 @@ local function track(model: Instance)
 	for _, d in model:GetDescendants() do
 		if d:IsA("Motor6D") and d.Name == "Spinner" then
 			table.insert(spinners, d)
-		elseif
-			d:IsA("BasePart")
-			and d.Name ~= "Root"
-			and d:GetAttribute("Role") ~= "pupil"
-			and d:GetAttribute("Role") ~= "eye"
-		then
+		elseif d:IsA("BasePart") and d:GetAttribute("RainbowBand") ~= nil then
 			table.insert(rainbowParts, d)
 		end
 	end
@@ -53,11 +63,69 @@ local function track(model: Instance)
 		rainbowParts = if CollectionService:HasTag(model, "RainbowVariant") then rainbowParts else {},
 		trail = root:FindFirstChild("RainbowTrail") :: Trail?,
 		phase = math.random() * 10,
+		evil = CollectionService:HasTag(model, "EvilVariant"),
+		bolts = nil,
+		nextStrike = 0,
+		hideBoltsAt = 0,
 	}
 end
 
 local function untrack(model: Instance)
+	local e = entries[model :: Model]
+	if e and e.bolts then
+		for _, b in e.bolts do
+			b:Destroy()
+		end
+	end
 	entries[model :: Model] = nil
+end
+
+local function hideBolts(e: Entry)
+	local bolts = e.bolts
+	if not bolts then
+		return
+	end
+	for _, b in bolts do
+		b.Transparency = 1
+	end
+end
+
+-- One lightning strike around an Evil brainrot: reposition the pooled neon segments.
+local function strike(e: Entry, root: BasePart, now: number)
+	local V = Config.Variants
+	if not e.bolts then
+		local pool: { BasePart } = {}
+		local folder = boltFolder :: Folder
+		for _ = 1, EvilBolts.maxSegments(V.EVIL_BOLTS) do
+			local p = Instance.new("Part")
+			p.Anchored = true
+			p.CanCollide = false
+			p.CanQuery = false
+			p.CanTouch = false
+			p.CastShadow = false
+			p.Material = Enum.Material.Neon
+			p.Color = Color3.fromHex(V.EVIL_BOLT_COLOR)
+			p.Transparency = 1
+			p.Parent = folder
+			table.insert(pool, p)
+		end
+		e.bolts = pool
+	end
+	local pool = e.bolts :: { BasePart }
+	local segs = EvilBolts.strike(rand, root.Size, V.EVIL_BOLTS)
+	for i, b in pool do
+		local seg = segs[i]
+		if seg then
+			b.Size = Vector3.new(BOLT_THICKNESS, BOLT_THICKNESS, seg.length + BOLT_THICKNESS)
+			b.CFrame = root.CFrame * seg.cframe
+			b.Transparency = 0
+		else
+			b.Transparency = 1
+		end
+	end
+	e.hideBoltsAt = now + BOLT_VISIBLE_SECONDS
+	local gap = V.EVIL_BOLT_INTERVAL
+	e.nextStrike = now + gap[1] + rand() * (gap[2] - gap[1])
 end
 
 local function pose(e: Entry, t: number): CFrame
@@ -65,7 +133,7 @@ local function pose(e: Entry, t: number): CFrame
 	local hover = (m:GetAttribute("Hover") :: number?) or 0
 	local idle = (m:GetAttribute("Idle") :: string?) or "bob"
 	local walking = m:GetAttribute("Walking") == true
-	local dark = CollectionService:HasTag(m, "DarkVariant")
+	local dark = e.evil
 	local tt = t + e.phase
 	if dark then
 		tt *= 0.6
@@ -95,7 +163,7 @@ local function pose(e: Entry, t: number): CFrame
 	end
 	local cf = CFrame.new(0, y, 0) * CFrame.Angles(rx, ry, rz)
 	if m:GetAttribute("Rogue") == true then
-		-- Rogue (Phase 4): violent shake, no colour change (must not look like Dark)
+		-- Rogue (Phase 4): violent shake, no colour change (must not look like Evil)
 		cf = CFrame.new(math.random(-10, 10) / 100, 0, math.random(-10, 10) / 100) * cf
 	end
 	return cf
@@ -104,6 +172,10 @@ end
 function BrainrotAnimator.init() end
 
 function BrainrotAnimator.start()
+	local folder = Instance.new("Folder")
+	folder.Name = "EvilLightning"
+	folder.Parent = workspace
+	boltFolder = folder
 	for _, m in CollectionService:GetTagged("Brainrot") do
 		track(m)
 	end
@@ -128,6 +200,7 @@ function BrainrotAnimator.start()
 			end
 			local root = model.PrimaryPart
 			if not root or (root.Position - camPos).Magnitude > MAX_DISTANCE then
+				hideBolts(e)
 				continue
 			end
 			if e.motor then
@@ -141,14 +214,17 @@ function BrainrotAnimator.start()
 				e.trail.Enabled = model:GetAttribute("Walking") == true
 			end
 			if doRainbow and #e.rainbowParts > 0 then
-				local shift = (t / cycle) % 1
-				for i, p in e.rainbowParts do
-					local base = p:GetAttribute("BaseColor") :: Color3?
-					if base then
-						local h, s, v = base:ToHSV()
-						p.Color =
-							Color3.fromHSV((h + shift + i * 0.015) % 1, math.max(s, 0.6), math.max(v, 0.55))
-					end
+				-- bands scroll upward: each colour climbs one band every cycle / #bands seconds
+				local shift = math.floor((t + e.phase) / cycle * #Config.Variants.RAINBOW_BANDS)
+				for _, p in e.rainbowParts do
+					p.Color = VariantLook.rainbowColor(p:GetAttribute("RainbowBand") :: number, shift)
+				end
+			end
+			if e.evil then
+				if t >= e.nextStrike then
+					strike(e, root, t)
+				elseif e.bolts and t >= e.hideBoltsAt then
+					hideBolts(e)
 				end
 			end
 		end
