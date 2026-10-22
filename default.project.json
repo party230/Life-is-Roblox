@@ -7,7 +7,9 @@
         "$path": "src/shared"
       },
       "Packages": {
-        "$path": { "optional": "Packages" }
+        "$path": {
+          "optional": "Packages"
+        }
       }
     },
     "ServerScriptService": {
@@ -15,7 +17,9 @@
         "$path": "src/server"
       },
       "ServerPackages": {
-        "$path": { "optional": "ServerPackages" }
+        "$path": {
+          "optional": "ServerPackages"
+        }
       }
     },
     "StarterPlayer": {
@@ -23,16 +27,6 @@
         "Client": {
           "$path": "src/client"
         }
-      }
-    },
-    "Workspace": {
-      "$properties": {
-        "FilteringEnabled": true
-      }
-    },
-    "Players": {
-      "$properties": {
-        "CharacterAutoLoads": true
       }
     }
   }

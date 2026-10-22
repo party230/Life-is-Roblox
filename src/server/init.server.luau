@@ -2,6 +2,7 @@
 -- Server entry point: validates Config, then runs init() on every service in order, then start().
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local Validate = require(ReplicatedStorage.Shared.Config.Validate)
@@ -38,4 +39,9 @@ for _, service in services do
 end
 for _, service in services do
 	task.spawn(service.start)
+end
+
+if RunService:IsStudio() and workspace:GetAttribute("RunSmokeTests") == true then
+	local SmokeTests = require(script.Dev.SmokeTests) :: { run: () -> () }
+	SmokeTests.run()
 end
