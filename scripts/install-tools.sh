@@ -28,6 +28,7 @@ fetch stylua "$GH/JohnnyMorganz/StyLua/releases/download/v2.0.2/stylua-linux-x86
 fetch lune "$GH/lune-org/lune/releases/download/v0.10.4/lune-0.10.4-linux-x86_64.zip"
 fetch luau-lsp "$GH/JohnnyMorganz/luau-lsp/releases/download/1.70.1/luau-lsp-linux-x86_64.zip"
 fetch wally "$GH/UpliftGames/wally/releases/download/v0.3.2/wally-v0.3.2-linux.zip"
+fetch wally-package-types "$GH/JohnnyMorganz/wally-package-types/releases/download/v1.3.2/wally-package-types-linux.zip"
 
 # Roblox API type definitions for luau-lsp.
 if [[ ! -f "$ROOT/.tools/globalTypes.d.luau" ]]; then

@@ -30,6 +30,10 @@ step "Rojo (build)"
 mkdir -p build
 rojo build default.project.json -o build/RotShift.rbxl
 rojo sourcemap default.project.json -o sourcemap.json
+if [[ -d Packages/_Index ]]; then
+	# Wally's thunk modules hide package types from luau-lsp; re-export them.
+	wally-package-types --sourcemap sourcemap.json Packages/
+fi
 
 step "luau-lsp (strict type-check)"
 DEFS="$ROOT/.tools/globalTypes.d.luau"
