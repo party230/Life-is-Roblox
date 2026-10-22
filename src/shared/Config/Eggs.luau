@@ -85,6 +85,6 @@ return table.freeze({
 	DAILY_STREAK_EGG = "streak",
 	DAILY_STREAK_BONUS_EGG = "streak7",
 	DAILY_STREAK_BONUS_DAY = 7,
-	INCUBATORS = 3,
+	-- incubators live in the nursery now: Config.Nursery.BASE_INCUBATORS + Extra Incubator passes
 	OPEN_AT_NIGHT = false, -- buying closes at night; incubators keep running and can still hatch
 })

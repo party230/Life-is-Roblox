@@ -20,6 +20,8 @@ local DataService = require(script.Parent.DataService)
 local CycleService = {
 	-- (newPhase, previousPhase)
 	phaseChanged = Signal.new() :: Signal.Signal<Types.CyclePhase, Types.CyclePhase?>,
+	-- The middle of the night (runaways and stolen brainrots running home leave now, D39)
+	midnight = Signal.new() :: Signal.Signal<>,
 }
 
 -- Tuned for Future lighting (set in default.project.json) to match the style reference (assets/reference/style.png):
@@ -86,6 +88,7 @@ local SLICE_DAY_ELAPSED = 120 -- frozen point in the slice: 2 minutes into the d
 local SLICE_NIGHT_ELAPSED = 0 -- set from Cycle when the dev toggle picks Night
 
 local elapsed = if Config.Game.VERTICAL_SLICE then SLICE_DAY_ELAPSED else 0
+local firedMidnight: { [number]: boolean } = {}
 local current: Cycle.PhaseInfo = Cycle.at(elapsed)
 
 local function timeScale(): number
@@ -98,6 +101,11 @@ end
 
 function CycleService.phase(): Types.CyclePhase
 	return current.phase
+end
+
+-- Studio time scale (Workspace attribute CycleTimeScale); 1 on live servers.
+function CycleService.timeScale(): number
+	return timeScale()
 end
 
 function CycleService.shopOpen(): boolean
@@ -148,6 +156,14 @@ function CycleService.start()
 			return -- never on live servers
 		end
 		elapsed = if phase == "Night" then SLICE_NIGHT_ELAPSED else SLICE_DAY_ELAPSED
+		if phase == "Night" and Config.Game.VERTICAL_SLICE then
+			-- the slice clock is frozen, so the middle of the night comes a few seconds after switching to it
+			task.delay(4, function()
+				if current.phase == "Night" then
+					CycleService.midnight:fire()
+				end
+			end)
+		end
 	end)
 	RunService.Heartbeat:Connect(function(dt: number)
 		if not Config.Game.VERTICAL_SLICE then
@@ -156,6 +172,14 @@ function CycleService.start()
 		local info = Cycle.at(elapsed)
 		local previous = current
 		current = info
+		-- crossed the middle of the night?
+		local g = Config.Game
+		local mid = g.DAY_LENGTH + g.DUSK + g.NIGHT_LENGTH * Config.Loyalty.RUNAWAY_AT_NIGHT_FRACTION
+		local into = elapsed - info.cycle * Cycle.length()
+		if info.phase == "Night" and into >= mid and not firedMidnight[info.cycle] then
+			firedMidnight[info.cycle] = true
+			CycleService.midnight:fire()
+		end
 		if info.phase ~= previous.phase or info.cycle ~= previous.cycle then
 			applyLighting(info.phase, false)
 			Remotes.CycleState:fireAll(CycleService.state())

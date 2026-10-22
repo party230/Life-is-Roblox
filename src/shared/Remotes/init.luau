@@ -13,8 +13,14 @@ export type DataSnapshot = {
 	incomePerSec: number,
 	slotsUnlocked: number,
 	storageCount: number,
-	brainrots: { Types.PublicBrainrot },
+	brainrots: { Types.PublicBrainrot }, -- owner-private fields included: only ever sent to the owner
 	eggs: { Types.PublicEgg },
+	food: { [string]: number },
+	nurseryUnlocked: boolean,
+	nurseryPrice: number, -- cash price to unlock (scales with progress)
+	incubators: number, -- usable incubators (3 + pass tiers)
+	collarSlots: number, -- Bond Collar: how many brainrots can be collared (0 without the pass)
+	dayLength: number, -- seconds per in-game day (client extrapolates timers between snapshots)
 }
 
 export type CycleState = {
@@ -38,12 +44,13 @@ export type PlotState = {
 
 export type HatchResult = {
 	brainrot: Types.PublicBrainrot,
-	placed: "pedestal" | "storage",
+	placed: "pedestal" | "storage" | "nursery",
 }
 
 export type NotifyKind = "info" | "good" | "warn" | "drop"
 
 local plotIndex = Guard.integer(1, Config.Game.PLOT_COUNT)
+local foodId = Guard.string(32)
 local listingId = Guard.string(40)
 local eggId = Guard.literal("basic", "fancy")
 
@@ -54,6 +61,29 @@ local Remotes = {
 	BuyListing = Net.clientEvent("BuyListing", Guard.args(listingId), { burst = 4, perSecond = 2 }) :: Net.ClientEvent<string>,
 	BuyEgg = Net.clientEvent("BuyEgg", Guard.args(eggId), { burst = 3, perSecond = 1 }) :: Net.ClientEvent<string>,
 	HatchEgg = Net.clientEvent("HatchEgg", Guard.args(Guard.guid), { burst = 3, perSecond = 2 }) :: Net.ClientEvent<string>,
+	BuyFood = Net.clientEvent(
+		"BuyFood",
+		Guard.args(foodId, Guard.integer(1, 10)),
+		{ burst = 4, perSecond = 2 }
+	) :: Net.ClientEvent<string, number>,
+	FeedBrainrot = Net.clientEvent(
+		"FeedBrainrot",
+		Guard.args(Guard.guid, foodId, Guard.integer(1, Config.Food.FEED_MAX_QUANTITY)),
+		{ burst = 6, perSecond = 3 }
+	) :: Net.ClientEvent<string, string, number>,
+	UnlockNursery = Net.clientEvent("UnlockNursery", Guard.args(), { burst = 2, perSecond = 0.5 }) :: Net.ClientEvent<>,
+	MoveToPedestal = Net.clientEvent("MoveToPedestal", Guard.args(Guard.guid), { burst = 3, perSecond = 2 }) :: Net.ClientEvent<string>,
+	SetCollar = Net.clientEvent(
+		"SetCollar",
+		Guard.args(Guard.guid, Guard.boolean),
+		{ burst = 3, perSecond = 1 }
+	) :: Net.ClientEvent<string, boolean>,
+	-- Studio only (ignored on live servers): test helpers for the runaway rules.
+	DevAction = Net.clientEvent(
+		"DevAction",
+		Guard.args(Guard.literal("ExpireTimers", "Midnight")),
+		{ burst = 2, perSecond = 1 }
+	) :: Net.ClientEvent<string>,
 	-- Studio only (ignored on live servers): force Day or Night lighting/state for the vertical slice.
 	DevSetPhase = Net.clientEvent(
 		"DevSetPhase",

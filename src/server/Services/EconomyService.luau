@@ -113,7 +113,9 @@ local function tick(dt: number)
 	for _, player in Players:GetPlayers() do
 		local data = DataService.get(player)
 		if data and BaseService.plotOf(player) then
-			data.uncollectedCash += EconomyService.perSec(player) * dt
+			local perSec = EconomyService.perSec(player)
+			data.uncollectedCash += perSec * dt
+			data.stats.peakIncome = math.max(data.stats.peakIncome, perSec) -- scales the nursery unlock price
 			-- Kept fresh so a server crash can't double-count offline time on the next join.
 			data.lastOnlineAt = now
 			if Entitlements.hasAutoCollect(player) then

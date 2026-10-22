@@ -1,13 +1,14 @@
 --!strict
--- Eggs: buy with cash -> incubate (up to INCUBATORS at once) -> hatch into a random brainrot and a variant roll.
--- Buying closes at night; incubators keep running and can still hatch (approved Q1).
--- Bought at the plaza Egg Stall (its ProximityPrompt opens the Eggs screen on the client).
+-- Eggs: buy with cash at the hub Egg Shop -> incubate in your nursery (3 incubators + passes, D39) -> hatch into a
+-- Baby (random character + variant roll) that lives in the nursery pen and grows by feeding and over time.
+-- Needs an unlocked nursery. Buying closes at night; incubators keep running and can still hatch (approved Q1).
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local Format = require(ReplicatedStorage.Shared.Util.Format)
 local Incubator = require(ReplicatedStorage.Shared.Logic.Incubator)
+local Nursery = require(ReplicatedStorage.Shared.Logic.Nursery)
 local Remotes = require(ReplicatedStorage.Shared.Remotes)
 local Roll = require(ReplicatedStorage.Shared.Logic.Roll)
 
@@ -16,6 +17,7 @@ local BrainrotService = require(script.Parent.BrainrotService)
 local CycleService = require(script.Parent.CycleService)
 local DataService = require(script.Parent.DataService)
 local EconomyService = require(script.Parent.EconomyService)
+local NurseryService = require(script.Parent.NurseryService)
 
 local EggService = {}
 
@@ -30,6 +32,10 @@ function EggService.buy(player: Player, eggId: string): boolean
 	if not data or not def or not def.cashPrice then
 		return false
 	end
+	if not data.nurseryUnlocked then
+		Remotes.Notify:fireClient(player, "warn", "Unlock your nursery first: eggs hatch there.")
+		return false
+	end
 	if not CycleService.shopOpen() then
 		Remotes.Notify:fireClient(
 			player,
@@ -38,7 +44,7 @@ function EggService.buy(player: Player, eggId: string): boolean
 		)
 		return false
 	end
-	if #data.eggs >= Config.Eggs.INCUBATORS then
+	if #data.eggs >= NurseryService.incubators(player) then
 		Remotes.Notify:fireClient(player, "warn", "All incubators are busy. Hatch an egg first!")
 		return false
 	end
@@ -53,10 +59,11 @@ function EggService.buy(player: Player, eggId: string): boolean
 		hatchSeconds = def.hatchSeconds,
 	})
 	DataService.sendSnapshot(player)
+	NurseryService.refresh(player)
 	Remotes.Notify:fireClient(
 		player,
 		"good",
-		`{def.displayName} is incubating. Ready in {Format.duration(def.hatchSeconds)}.`
+		`{def.displayName} is in your nursery. Ready in {Format.duration(def.hatchSeconds)}.`
 	)
 	return true
 end
@@ -76,22 +83,31 @@ function EggService.hatch(player: Player, eggInstanceId: string): boolean
 	if not speciesId then
 		return false
 	end
-	local brainrot =
-		Roll.newBrainrot(BrainrotService.newId(), speciesId, Roll.variant(rng), player.UserId, os.time())
-	local placed = BrainrotService.give(player, brainrot)
-	if not placed then
-		Remotes.Notify:fireClient(player, "warn", "No room! Free a pedestal or storage slot, then hatch.")
+	if Nursery.penCount(data) >= Config.Nursery.PEN_CAPACITY then
+		Remotes.Notify:fireClient(player, "warn", "The nursery pen is full! Move a baby to a pedestal first.")
 		return false
 	end
+	-- a Baby in the pen, with the 2-day minimum timer and starting loyalty
+	local brainrot =
+		Roll.newBrainrot(BrainrotService.newId(), speciesId, Roll.variant(rng), player.UserId, os.time())
+	brainrot.growth = 0
+	brainrot.inNursery = true
+	data.brainrots[brainrot.id] = brainrot
 	table.remove(data.eggs, index)
+	BrainrotService.sync(player)
+	NurseryService.refresh(player)
 	DataService.sendSnapshot(player)
 	Remotes.HatchResult:fireClient(
 		player,
-		{ brainrot = BrainrotService.toPublic(data, brainrot), placed = placed :: any }
+		{ brainrot = BrainrotService.toPublic(data, brainrot), placed = "nursery" }
 	)
 	local species = Config.Species.byId[speciesId]
 	local variant = if brainrot.variant ~= "Normal" then `{brainrot.variant} ` else ""
-	Remotes.Notify:fireClient(player, "good", `Hatched a {variant}{species.displayName} ({brainrot.rarity})!`)
+	Remotes.Notify:fireClient(
+		player,
+		"good",
+		`Hatched a baby {variant}{species.displayName} ({brainrot.rarity})!`
+	)
 	if brainrot.rarity == "Mythic" or brainrot.rarity == "Secret" then
 		Remotes.Notify:fireAll(
 			"drop",

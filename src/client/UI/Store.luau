@@ -21,6 +21,13 @@ export type Store = {
 	placedCount: V<number>,
 	brainrots: V<{ Types.PublicBrainrot }>,
 	eggs: V<{ Types.PublicEgg }>,
+	food: V<{ [string]: number }>,
+	nurseryUnlocked: V<boolean>,
+	nurseryPrice: V<number>,
+	incubators: V<number>,
+	collarSlots: V<number>,
+	dayLength: V<number>,
+	snapshotAt: V<number>, -- os.clock() when the last snapshot arrived (timers are extrapolated from it)
 	phase: V<Types.CyclePhase>,
 	phaseEndsAt: V<number>,
 	now: V<number>, -- server time, ticks ~5x a second
@@ -31,10 +38,21 @@ export type Store = {
 	toast: V<Toast?>,
 	shopVisible: V<boolean>,
 	eggsVisible: V<boolean>,
+	foodVisible: V<boolean>,
+	nurseryVisible: V<boolean>,
+	cardBrainrot: V<string?>, -- brainrot id shown in the brainrot card (feed / inspect), nil = closed
 	pushToast: (kind: Remotes.NotifyKind, text: string) -> (),
 }
 
 local Store = {}
+
+-- A brainrot's runaway timer right now, in in-game days (extrapolated from the last snapshot; the server is truth).
+function Store.timerNow(b: Types.PublicBrainrot, snapshotAt: number, dayLength: number): number
+	if b.bondCollared or b.leaving then
+		return b.timerDays
+	end
+	return math.max(0, b.timerDays - (os.clock() - snapshotAt) / math.max(1, dayLength))
+end
 
 local TOAST_SECONDS = 3.5
 
@@ -47,6 +65,13 @@ function Store.new(scope: Scope): Store
 		placedCount = scope:Value(0) :: any,
 		brainrots = scope:Value({}) :: any,
 		eggs = scope:Value({}) :: any,
+		food = scope:Value({}) :: any,
+		nurseryUnlocked = scope:Value(false) :: any,
+		nurseryPrice = scope:Value(0) :: any,
+		incubators = scope:Value(3) :: any,
+		collarSlots = scope:Value(0) :: any,
+		dayLength = scope:Value(770) :: any,
+		snapshotAt = scope:Value(os.clock()) :: any,
 		phase = scope:Value("Day" :: Types.CyclePhase) :: any,
 		phaseEndsAt = scope:Value(0) :: any,
 		now = scope:Value(workspace:GetServerTimeNow()) :: any,
@@ -57,6 +82,9 @@ function Store.new(scope: Scope): Store
 		toast = scope:Value(nil :: Toast?) :: any,
 		shopVisible = scope:Value(false) :: any,
 		eggsVisible = scope:Value(false) :: any,
+		foodVisible = scope:Value(false) :: any,
+		nurseryVisible = scope:Value(false) :: any,
+		cardBrainrot = scope:Value(nil :: string?) :: any,
 		pushToast = function() end,
 	}
 
@@ -76,6 +104,13 @@ function Store.new(scope: Scope): Store
 			store.placedCount:set(placed)
 			store.brainrots:set(snap.brainrots)
 			store.eggs:set(snap.eggs)
+			store.food:set(snap.food)
+			store.nurseryUnlocked:set(snap.nurseryUnlocked)
+			store.nurseryPrice:set(snap.nurseryPrice)
+			store.incubators:set(snap.incubators)
+			store.collarSlots:set(snap.collarSlots)
+			store.dayLength:set(snap.dayLength)
+			store.snapshotAt:set(os.clock())
 		end)
 	)
 	table.insert(

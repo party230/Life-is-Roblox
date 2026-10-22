@@ -27,6 +27,8 @@ local services: { Service } = {
 	require(Services.EconomyService) :: Service,
 	require(Services.ShopService) :: Service,
 	require(Services.EggService) :: Service,
+	require(Services.FoodService) :: Service,
+	require(Services.NurseryService) :: Service,
 	require(Services.StealService) :: Service,
 	require(Services.LoyaltyService) :: Service,
 	require(Services.NightService) :: Service,

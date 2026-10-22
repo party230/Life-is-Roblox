@@ -9,6 +9,8 @@ type Provider = {
 	incomeMultiplier: (Player) -> number,
 	hasAutoCollect: (Player) -> boolean,
 	luck: (Player) -> number,
+	incubatorTiers: (Player) -> number,
+	hasBondCollar: (Player) -> boolean,
 }
 
 local provider: Provider = {
@@ -23,6 +25,12 @@ local provider: Provider = {
 	end,
 	luck = function(_)
 		return 1
+	end,
+	incubatorTiers = function(_)
+		return 0
+	end,
+	hasBondCollar = function(_)
+		return false
 	end,
 }
 
@@ -44,6 +52,15 @@ end
 
 function Entitlements.luck(player: Player): number
 	return provider.luck(player)
+end
+
+-- Extra Incubator passes owned (0..3).
+function Entitlements.incubatorTiers(player: Player): number
+	return provider.incubatorTiers(player)
+end
+
+function Entitlements.hasBondCollar(player: Player): boolean
+	return provider.hasBondCollar(player)
 end
 
 return Entitlements

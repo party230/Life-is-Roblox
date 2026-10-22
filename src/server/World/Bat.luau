@@ -1,6 +1,7 @@
 --!strict
--- The free Bonk bat everyone carries (style reference). Phase 3 adds the actual bonk (drop a carried brainrot);
--- for now it equips and swings using the default Animate script's "Slash" tool animation.
+-- The free Bonk bat everyone carries (style reference). Swinging it catches your runaway brainrots (D39); Phase 3
+-- adds bonking thieves. `hook` wires one player's own copy (Roblox doesn't clone connections from the
+-- StarterPack template, so each Backpack copy is hooked when it appears).
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -51,6 +52,15 @@ function Bat.build(): Tool
 		weld.Parent = part
 	end
 
+	return tool
+end
+
+-- Wires a player's bat: plays the default Animate "Slash" and calls onSwing, rate-limited by BONK_COOLDOWN.
+function Bat.hook(tool: Tool, onSwing: () -> ())
+	if tool:GetAttribute("Hooked") then
+		return
+	end
+	tool:SetAttribute("Hooked", true)
 	local cooldown = Config.Defences.BONK_COOLDOWN
 	local last = 0
 	tool.Activated:Connect(function()
@@ -64,8 +74,8 @@ function Bat.build(): Tool
 		anim.Name = "toolanim"
 		anim.Value = "Slash"
 		anim.Parent = tool
+		onSwing()
 	end)
-	return tool
 end
 
 return Bat

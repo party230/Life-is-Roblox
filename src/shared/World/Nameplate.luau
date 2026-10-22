@@ -16,9 +16,11 @@ local WIDTH_STUDS = Config.Layout.NAMEPLATE_WIDTH
 local LINE_STUDS = Config.Layout.NAMEPLATE_LINE -- height of a weight-1 line, in studs (world-scaled)
 local INCOME_COLOR = Color3.fromHex("#FFE34D")
 local PRICE_COLOR = Color3.fromHex("#5CFF6B")
+local STAGE_COLOR = Color3.fromHex("#9FE8FF")
 
 export type Options = {
 	price: number?, -- carpet only
+	stage: string?, -- "Baby" / "Teen" add a stage line (public: anyone can see a baby is a baby)
 }
 
 type Line = { text: string, color: Color3, weight: number, gradient: boolean? }
@@ -72,6 +74,9 @@ function Nameplate.attach(
 	local variantDef = Config.Variants.byId[variant] or Config.Variants.byId.Normal
 
 	local lines: { Line } = {}
+	if o.stage and o.stage ~= "Adult" then
+		table.insert(lines, { text = o.stage, color = STAGE_COLOR, weight = 0.8 })
+	end
 	if variantDef.displayName ~= "" then
 		table.insert(
 			lines,

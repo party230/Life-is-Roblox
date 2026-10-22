@@ -12,6 +12,7 @@ local Brainrot = {}
 
 export type Options = {
 	price: number?, -- shows the price line (carpet)
+	stage: string?, -- growth stage; Baby / Teen get a public stage line on the nameplate
 }
 
 function Brainrot.create(speciesId: string, rarity: string, variant: string, opts: Options?): Model

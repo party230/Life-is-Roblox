@@ -7,7 +7,9 @@ local RunService = game:GetService("RunService")
 
 local Shared = ReplicatedStorage.Shared
 local Config = require(Shared.Config)
+local Cycle = require(Shared.Logic.Cycle)
 local Income = require(Shared.Logic.Income)
+local Nursery = require(Shared.Logic.Nursery)
 local Migrations = require(Shared.Data.Migrations)
 local Public = require(Shared.Data.Public)
 local Remotes = require(Shared.Remotes)
@@ -82,6 +84,12 @@ local function toSnapshot(player: Player, data: Types.PlayerData): Remotes.DataS
 		storageCount = Slots.storageCount(data),
 		brainrots = brainrots,
 		eggs = eggs,
+		food = table.clone(data.food),
+		nurseryUnlocked = data.nurseryUnlocked,
+		nurseryPrice = Nursery.unlockPrice(data.stats.peakIncome),
+		incubators = Nursery.incubators(Entitlements.incubatorTiers(player)),
+		collarSlots = if Entitlements.hasBondCollar(player) then Config.Loyalty.COLLAR_MAX else 0,
+		dayLength = Cycle.length(),
 	}
 end
 

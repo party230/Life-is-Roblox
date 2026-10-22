@@ -1,6 +1,7 @@
 --!strict
--- Eggs screen (mockup 08), opened from the plaza Egg Stall or the Eggs button. Left: cash eggs with odds always
--- visible (colour bar + list). Right: incubators with progress and a HATCH button when ready.
+-- Eggs screen (mockup 08), opened from the hub Egg Shop or the Eggs button. Left: cash eggs with odds always
+-- visible (colour bar + list). Right: your nursery's incubators with progress and a HATCH button when ready
+-- (eggs need an unlocked nursery, D39; the Nursery screen shows every incubator).
 -- Buying closes at night; incubators keep running and can still hatch.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -131,10 +132,14 @@ local function EggCard(
 			color = Theme.green,
 			enabled = scope:Computed(function(use)
 				return not use(isNight)
+					and use(store.nurseryUnlocked)
 					and use(store.cash) >= price
-					and #use(store.eggs) < Config.Eggs.INCUBATORS
+					and #use(store.eggs) < use(store.incubators)
 			end),
 			text = scope:Computed(function(use)
+				if not use(store.nurseryUnlocked) then
+					return "Nursery locked"
+				end
 				return if use(isNight) then "Dawn" else Format.price(price)
 			end),
 			textSize = 28,
@@ -315,7 +320,10 @@ local function EggsPanel(scope: Scope, store: Store.Store): Instance
 		}),
 		Text(scope, {
 			text = scope:Computed(function(use)
-				return `Incubators  {#use(store.eggs)} / {Config.Eggs.INCUBATORS}`
+				if not use(store.nurseryUnlocked) then
+					return "Unlock your nursery to hatch eggs"
+				end
+				return `Nursery incubators  {#use(store.eggs)} / {use(store.incubators)}`
 			end),
 			size = 24,
 			color = scope:Computed(function(use)
@@ -329,7 +337,7 @@ local function EggsPanel(scope: Scope, store: Store.Store): Instance
 	for _, c in cards do
 		table.insert(children, c)
 	end
-	for slot = 1, Config.Eggs.INCUBATORS do
+	for slot = 1, Config.Nursery.BASE_INCUBATORS do -- the first three here; all of them in the Nursery screen
 		table.insert(children, Incubator(scope, store, slot))
 	end
 	return scope:New("Frame")({
