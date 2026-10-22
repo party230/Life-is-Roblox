@@ -6,6 +6,7 @@ local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local Public = require(ReplicatedStorage.Shared.Data.Public)
 local Slots = require(ReplicatedStorage.Shared.Logic.Slots)
 local Types = require(ReplicatedStorage.Shared.Types)
 
@@ -113,17 +114,9 @@ function BrainrotService.give(player: Player, brainrot: Types.Brainrot): ("pedes
 	return placed
 end
 
+-- Owner-only view (includes loyalty and the runaway timer): only ever send to the owner.
 function BrainrotService.toPublic(data: Types.PlayerData, b: Types.Brainrot): Types.PublicBrainrot
-	return {
-		id = b.id,
-		speciesId = b.speciesId,
-		rarity = b.rarity,
-		variant = b.variant,
-		incomePerSec = b.incomePerSec,
-		loyalty = b.loyalty,
-		isStolen = b.isStolen,
-		slot = Slots.slotOf(data, b.id),
-	}
+	return Public.brainrot(b, Slots.slotOf(data, b.id))
 end
 
 function BrainrotService.init() end

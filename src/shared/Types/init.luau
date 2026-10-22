@@ -14,15 +14,21 @@ export type Brainrot = {
 	incomePerSec: number, -- cached from species/rarity/variant; recomputed on load
 	ownerUserId: number,
 	originalOwnerUserId: number?, -- set when stolen
-	loyalty: number, -- 0..LOYALTY_MAX toward current owner
-	oldLoyalty: number?, -- loyalty toward originalOwnerUserId (decays per night)
+	loyalty: number, -- 0..Loyalty.MAX toward the current owner (owner-private)
+	oldLoyalty: number?, -- loyalty toward originalOwnerUserId (decays per night; >= RETURN_HOME_THRESHOLD runs home)
 	acquiredAt: number, -- unix seconds
 	lastInteractedAt: number, -- unix seconds
 	isStolen: boolean,
-	loyaltyTimeToday: number, -- minutes of time-owned loyalty gained today (for LOYALTY_DAILY_TIME_CAP)
-	loyaltyDay: number, -- unix day number loyaltyTimeToday refers to
-	lowLoyaltySince: number?, -- unix seconds loyalty dropped below ROGUE_THRESHOLD
-	bondCollared: boolean,
+	lowLoyaltySince: number?, -- unix seconds loyalty dropped below ROGUE_THRESHOLD (Rogue, Phase 4)
+	bondCollared: boolean, -- Bond Collar: runaway timer paused, loyalty doesn't grow
+	-- Runaway timer (in-game days, ticks only while the owner is online; owner-private)
+	timerDays: number, -- left
+	timerFullDays: number, -- value at the last fill (the owner's bar shows timerDays / timerFullDays)
+	leaving: boolean, -- timer ran out: runs away at the middle of the next night unless fed
+	sinceFedDays: number, -- in-game days since the last feed (neglect)
+	-- Growth (Baby -> Teen -> Adult by points; see Config/Nursery)
+	growth: number,
+	inNursery: boolean, -- living in the nursery pen (not on a pedestal, not in storage)
 }
 
 export type PendingEgg = {
@@ -41,6 +47,7 @@ export type PlayerStats = {
 	nightsSurvived: number,
 	defectionsWon: number,
 	totalEarned: number,
+	peakIncome: number, -- best income/s ever (scales the nursery unlock price)
 }
 
 export type PlayerSettings = {
@@ -55,8 +62,9 @@ export type PlayerData = {
 	uncollectedCash: number,
 	brainrots: { [string]: Brainrot }, -- by id
 	pedestals: { [string]: string }, -- slot index ("1".."N") -> brainrot id
-	eggs: { PendingEgg },
-	treats: number,
+	eggs: { PendingEgg }, -- in nursery incubators
+	food: { [string]: number }, -- food id -> count
+	nurseryUnlocked: boolean,
 	lastOnlineAt: number, -- unix seconds; 0 = never
 	streak: { count: number, lastClaimDay: number },
 	stats: PlayerStats,
@@ -73,10 +81,18 @@ export type PublicBrainrot = {
 	speciesId: string, -- already resolved (placeholder id if disabled)
 	rarity: RarityId,
 	variant: VariantId,
-	incomePerSec: number,
-	loyalty: number,
+	incomePerSec: number, -- effective (after loyalty and growth stage)
 	isStolen: boolean,
-	slot: number?, -- pedestal slot, nil = in storage
+	slot: number?, -- pedestal slot, nil = storage or nursery
+	stage: string, -- "Baby" | "Teen" | "Adult"
+	growth: number,
+	inNursery: boolean,
+	-- owner-private (only ever in the owner's own snapshot)
+	loyalty: number,
+	timerDays: number,
+	timerFullDays: number,
+	leaving: boolean,
+	bondCollared: boolean,
 }
 
 export type PublicEgg = {

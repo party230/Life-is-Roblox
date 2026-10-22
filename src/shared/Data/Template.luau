@@ -5,7 +5,7 @@
 local Config = require("../Config")
 local Types = require("../Types")
 
-local CURRENT_VERSION = 3
+local CURRENT_VERSION = 4
 
 local function create(): Types.PlayerData
 	return {
@@ -15,7 +15,8 @@ local function create(): Types.PlayerData
 		brainrots = {},
 		pedestals = {},
 		eggs = {},
-		treats = 0,
+		food = {},
+		nurseryUnlocked = false,
 		lastOnlineAt = 0,
 		streak = { count = 0, lastClaimDay = 0 },
 		stats = {
@@ -27,6 +28,7 @@ local function create(): Types.PlayerData
 			nightsSurvived = 0,
 			defectionsWon = 0,
 			totalEarned = 0,
+			peakIncome = 0,
 		},
 		settings = { musicVolume = 0.6, sfxVolume = 0.8, reducedMotion = false },
 		baseName = "",

@@ -87,6 +87,58 @@ describe("Migration 2 -> 3 (variants: Gold/Diamond -> Normal, Dark -> Evil)", fu
 	end)
 end)
 
+describe("Migration 3 -> 4 (timer, growth, nursery, food)", function()
+	it("gives existing brainrots the 2-day timer, Adult growth and at least starting loyalty", function()
+		local data: { [string]: any } = {
+			version = 3,
+			treats = 4,
+			stats = { totalEarned = 10 },
+			brainrots = {
+				a = {
+					id = "a",
+					speciesId = "brr_brr_patapim",
+					rarity = "Rare",
+					variant = "Evil",
+					loyalty = 0,
+					loyaltyTimeToday = 3,
+					loyaltyDay = 19000,
+				},
+				b = {
+					id = "b",
+					speciesId = "tralalero_tralala",
+					rarity = "Mythic",
+					variant = "Normal",
+					loyalty = 90,
+				},
+			},
+		}
+		expect((Migrations.run(data, 4))).to.equal(true)
+		expect(data.version).to.equal(4)
+		local a = data.brainrots.a
+		expect(a.timerDays).to.equal(2)
+		expect(a.timerFullDays).to.equal(2)
+		expect(a.leaving).to.equal(false)
+		expect(a.growth).to.equal(Config.Nursery.ADULT_GROWTH)
+		expect(a.inNursery).to.equal(false)
+		expect(a.loyalty).to.equal(50) -- old default 0 would now halve income
+		expect(a.loyaltyTimeToday).to.equal(nil)
+		expect(a.variant).to.equal("Evil") -- untouched
+		expect(data.brainrots.b.loyalty).to.equal(90) -- kept when higher
+		expect(data.food.slice).to.equal(4) -- treats became Pizza Slices
+		expect(data.treats).to.equal(nil)
+		expect(data.nurseryUnlocked).to.equal(false)
+		expect(data.stats.peakIncome).to.equal(0)
+		expect(data.stats.totalEarned).to.equal(10)
+	end)
+
+	it("matches what a fresh save looks like", function()
+		local fresh = Template.create()
+		expect(fresh.version).to.equal(4)
+		expect(fresh.nurseryUnlocked).to.equal(false)
+		expect((next(fresh.food))).to.equal(nil)
+	end)
+end)
+
 describe("Migrations.run", function()
 	local steps = {
 		function(data: { [string]: any })

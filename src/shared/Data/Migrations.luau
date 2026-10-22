@@ -16,6 +16,11 @@ local MUTATION_TO_VARIANT: { [string]: string } = {
 	Mega = "Normal",
 }
 
+-- Values frozen at the time of the step (never read live Config inside a migration).
+local LOYALTY_START_V4 = 50
+local TIMER_MIN_DAYS_V4 = 2
+local ADULT_GROWTH_V4 = 140
+
 local VARIANT_RENAMES_V3: { [string]: string } = {
 	Gold = "Normal",
 	Diamond = "Normal",
@@ -38,6 +43,31 @@ Migrations.steps = {
 		for _, b in data.brainrots or {} do
 			b.variant = VARIANT_RENAMES_V3[b.variant] or b.variant or "Normal"
 		end
+	end,
+	-- 3 -> 4 (D39): runaway timer, growth and the nursery; food replaces treats.
+	-- Existing brainrots are Adults with the minimum timer, and at least the starting loyalty (the old default
+	-- was 0, which would now halve their income).
+	function(data: { [string]: any })
+		for _, b in data.brainrots or {} do
+			b.loyalty = math.max(tonumber(b.loyalty) or 0, LOYALTY_START_V4)
+			b.timerDays = TIMER_MIN_DAYS_V4
+			b.timerFullDays = TIMER_MIN_DAYS_V4
+			b.leaving = false
+			b.sinceFedDays = 0
+			b.growth = ADULT_GROWTH_V4
+			b.inNursery = false
+			b.loyaltyTimeToday = nil
+			b.loyaltyDay = nil
+		end
+		data.food = data.food or {}
+		local treats = tonumber(data.treats) or 0
+		if treats > 0 then
+			data.food.slice = (data.food.slice or 0) + treats -- treat packs became food: 1 treat = 1 Pizza Slice
+		end
+		data.treats = nil
+		data.nurseryUnlocked = data.nurseryUnlocked == true
+		data.stats = data.stats or {}
+		data.stats.peakIncome = data.stats.peakIncome or 0
 	end,
 } :: { Step }
 

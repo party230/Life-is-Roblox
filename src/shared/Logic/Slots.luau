@@ -53,12 +53,19 @@ function Slots.placedCount(data: Types.PlayerData): number
 	return n
 end
 
+-- Brainrots in storage: not on a pedestal and not living in the nursery pen.
 function Slots.storageCount(data: Types.PlayerData): number
-	local total = 0
-	for _ in data.brainrots do
-		total += 1
+	local onPedestal: { [string]: boolean } = {}
+	for _, id in data.pedestals do
+		onPedestal[id] = true
 	end
-	return total - Slots.placedCount(data)
+	local total = 0
+	for id, b in data.brainrots do
+		if not onPedestal[id] and not b.inNursery then
+			total += 1
+		end
+	end
+	return total
 end
 
 -- Adds a brainrot to the save: onto the first free pedestal, else into storage if there's room.

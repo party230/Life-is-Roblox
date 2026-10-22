@@ -9,6 +9,7 @@ local Shared = ReplicatedStorage.Shared
 local Config = require(Shared.Config)
 local Income = require(Shared.Logic.Income)
 local Migrations = require(Shared.Data.Migrations)
+local Public = require(Shared.Data.Public)
 local Remotes = require(Shared.Remotes)
 local Signal = require(Shared.Util.Signal)
 local Slots = require(Shared.Logic.Slots)
@@ -67,16 +68,7 @@ local function toSnapshot(player: Player, data: Types.PlayerData): Remotes.DataS
 	end
 	local brainrots: { Types.PublicBrainrot } = {}
 	for _, b in data.brainrots do
-		table.insert(brainrots, {
-			id = b.id,
-			speciesId = b.speciesId,
-			rarity = b.rarity,
-			variant = b.variant,
-			incomePerSec = b.incomePerSec,
-			loyalty = b.loyalty,
-			isStolen = b.isStolen,
-			slot = slotById[b.id],
-		})
+		table.insert(brainrots, Public.brainrot(b, slotById[b.id]))
 	end
 	local eggs: { Types.PublicEgg } = {}
 	for _, e in data.eggs do

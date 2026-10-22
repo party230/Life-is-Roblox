@@ -41,9 +41,6 @@ function Validate.run(config: any): Result
 	if g.LOYALTY_SPEED_DIVISOR < g.LOYALTY_MAX then
 		err("LOYALTY_SPEED_DIVISOR below LOYALTY_MAX would allow a zero/negative carry speed")
 	end
-	if g.DEFECT_SCALAR * g.LOYALTY_MAX > 1 then
-		err("DEFECT_SCALAR * LOYALTY_MAX exceeds 100% defect chance")
-	end
 	if g.OFFLINE_RATE < 0 or g.OFFLINE_RATE > 1 then
 		err("OFFLINE_RATE must be in [0, 1]")
 	end
@@ -52,6 +49,45 @@ function Validate.run(config: any): Result
 	end
 	if g.ROTTER_MIN_PLAYERS > g.MAX_PLAYERS then
 		warnings[#warnings + 1] = "ROTTER_MIN_PLAYERS above MAX_PLAYERS: the Rotter can never spawn"
+	end
+
+	-- Loyalty / timer (D39)
+	local lc = config.Loyalty
+	if lc.TIMER_MIN_DAYS <= 0 or lc.TIMER_MIN_DAYS > lc.MAX_TIMER_DAYS then
+		err("Loyalty: TIMER_MIN_DAYS must be in (0, MAX_TIMER_DAYS]")
+	end
+	if not (lc.TIMER_RED < lc.TIMER_YELLOW and lc.TIMER_YELLOW < 1) then
+		err("Loyalty: timer bar thresholds must satisfy RED < YELLOW < 1")
+	end
+	local lastX, lastY = -1, 0
+	for _, point in lc.INCOME_CURVE do
+		if point[1] <= lastX or point[2] < lastY then
+			err("Loyalty.INCOME_CURVE must increase")
+		end
+		lastX, lastY = point[1], point[2]
+	end
+	if lc.START > lc.MAX or lc.STOLEN_START > lc.MAX or lc.RETURN_HOME_THRESHOLD > lc.MAX then
+		err("Loyalty: START / STOLEN_START / RETURN_HOME_THRESHOLD must be <= MAX")
+	end
+	-- Nursery stages must grow in points, size and income
+	local lastGrowth, lastScale = -1, 0
+	for _, stage in config.Nursery.stages do
+		if stage.minGrowth <= lastGrowth or stage.scale <= lastScale then
+			err(`Nursery stage {stage.id} must need more growth and be bigger than the one before`)
+		end
+		lastGrowth, lastScale = stage.minGrowth, stage.scale
+	end
+	if config.Nursery.stages[#config.Nursery.stages].minGrowth ~= config.Nursery.ADULT_GROWTH then
+		err("Nursery.ADULT_GROWTH must match the Adult stage")
+	end
+	-- Food: every food is sold somehow; Premium is Robux only
+	for _, food in config.Food.list do
+		if food.cash == nil and food.robux == nil then
+			err(`food {food.id} has neither a cash nor a Robux price`)
+		end
+		if food.tab == "Premium" and food.cash ~= nil then
+			err(`premium food {food.id} must be Robux only`)
+		end
 	end
 
 	-- Rarities

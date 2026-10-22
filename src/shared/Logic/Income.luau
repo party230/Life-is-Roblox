@@ -1,10 +1,12 @@
 --!strict
--- Income maths (D10): BASE_INCOME_PER_SEC x character incomeFactor x rarity.incomeMult x variant.incomeMult.
+-- Income maths (D10, D39): BASE_INCOME_PER_SEC x character incomeFactor x rarity.incomeMult x variant.incomeMult
+-- (cached as brainrot.incomePerSec), then x loyalty multiplier x growth-stage multiplier.
 -- Only brainrots standing on a pedestal earn.
 
 local Config = require("../Config")
 local Types = require("../Types")
 local Catalog = require("./Catalog")
+local Loyalty = require("./Loyalty")
 
 local Income = {}
 
@@ -31,13 +33,18 @@ function Income.refresh(data: Types.PlayerData): boolean
 	return changed
 end
 
+-- What one brainrot earns per second on a pedestal (loyalty and growth stage included).
+function Income.effective(b: Types.Brainrot): number
+	return b.incomePerSec * Loyalty.incomeFactor(b)
+end
+
 -- Base income per second from brainrots on pedestals, before pass multipliers.
 function Income.basePerSec(data: Types.PlayerData): number
 	local total = 0
 	for _, id in data.pedestals do
 		local b = data.brainrots[id]
 		if b then
-			total += b.incomePerSec
+			total += Income.effective(b)
 		end
 	end
 	return total

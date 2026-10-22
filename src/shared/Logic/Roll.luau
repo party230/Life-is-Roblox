@@ -53,7 +53,7 @@ function Roll.variant(rng: Rng, weights: { [string]: number }?): Types.VariantId
 	return (WeightedRandom.pickKey(w, rng) or "Normal") :: Types.VariantId
 end
 
--- Builds a fresh, unstolen brainrot record.
+-- Builds a fresh, unstolen brainrot record (an Adult with the minimum runaway timer and starting loyalty).
 function Roll.newBrainrot(
 	id: string,
 	speciesId: string,
@@ -70,15 +70,19 @@ function Roll.newBrainrot(
 		incomePerSec = Income.perSec(speciesId, variant, species.rarity),
 		ownerUserId = ownerUserId,
 		originalOwnerUserId = nil,
-		loyalty = 0,
+		loyalty = Config.Loyalty.START,
 		oldLoyalty = nil,
 		acquiredAt = now,
 		lastInteractedAt = now,
 		isStolen = false,
-		loyaltyTimeToday = 0,
-		loyaltyDay = now // 86400,
 		lowLoyaltySince = nil,
 		bondCollared = false,
+		timerDays = Config.Loyalty.TIMER_MIN_DAYS,
+		timerFullDays = Config.Loyalty.TIMER_MIN_DAYS,
+		leaving = false,
+		sinceFedDays = 0,
+		growth = Config.Nursery.ADULT_GROWTH, -- bought brainrots are Adults; hatching sets 0 (Baby)
+		inNursery = false,
 	}
 end
 
