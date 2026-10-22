@@ -206,3 +206,30 @@ its reference once that arrives.
   outline, no colour change).
 - **Saves migrate v2 → v3:** Gold/Diamond → Normal, Dark → Evil. The brainrot itself is kept.
 
+## v3 update: bigger map, shared conveyor, nursery + loyalty, food shop (owner request; design pending)
+
+**D37. Owner-requested feature changes.** The proposed numbers are in `docs/DESIGN_V3.md`, awaiting
+feedback. Overrides:
+- **Map** (overrides SPEC §2/§4 map and the 8-base ring, D26 slice layout): 12 bases in a ring around a central
+  hub, gates facing it, gate-to-carpet walk 10–15 s. The hub replaces the plaza: hangout, leaderboards, trading,
+  event stage, Egg Shop and Food Shop stalls.
+- **Shared conveyor** (overrides D24's per-base carpet and Q3's per-player belt): one central portal and a
+  carpet loop for everyone, first to buy. Rare+ spawns keep the server-wide announcement.
+- **Escape lanes** (overrides the per-base lane): lanes between neighbouring bases. Crossing the hub stays
+  allowed under the Q8 rule.
+- **Loyalty** (rework of SPEC §4.4; overrides Q5/Q6 and D18's always-visible hearts and the probabilistic
+  defection formula):
+  - 0–100 toward the current owner; income ×0.5 → ×2.
+  - Raised mainly by feeding.
+  - **Owner-only:** the server never sends another player's loyalty or timers.
+- **Runaway timer** (new): starts at 2 in-game days, food stacks it up to MAX_TIMER_DAYS (60). It ticks only
+  while the owner is online. At 0 the brainrot runs to the conveyor at mid-night, and the owner can catch it.
+- **Stolen brainrots** (replaces defection): high loyalty to the original owner (≥ RETURN_HOME_THRESHOLD) → it
+  runs home at mid-night. Otherwise it stays, at low loyalty to the new owner.
+- **Nursery + growth** (new):
+  - Walled area in each base, locked by default (cash unlock or Robux skip).
+  - Incubators hatch Egg Shop eggs into Babies; feeding grows them Baby → Teen → Adult.
+- **Food shop** (new): 18 foods (`Config/Food.luau`), cash and Robux. Replaces Treat Packs.
+- **Bond Collar** (overrides its old effect): pauses the runaway timer on up to 2 brainrots; no loyalty growth
+  while paused.
+

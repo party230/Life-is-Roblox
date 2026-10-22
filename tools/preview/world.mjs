@@ -1,12 +1,13 @@
 // Renders build/world.json (from world.luau) to PNGs with three.js in headless Chromium.
-// Usage (repo root): node tools/preview/world.mjs build/world.json assets/previews
+// Usage (repo root): node tools/preview/world.mjs build/world.json assets/previews [shots.json]
+// shots.json overrides the default shots: [{ name, mode, camera, target, frame?, world?, ortho?, ... }]
 import { chromium } from "playwright-core";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const [, , input, outDir] = process.argv;
+const [, , input, outDir, shotsFile] = process.argv;
 
 // Camera shots. Plot-local coordinates: x across the plot, y up, -z toward the gate and the plaza.
 const SHOTS = [
@@ -54,7 +55,7 @@ const browser = await chromium.launch({
 	executablePath: exe,
 	args: ["--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"],
 });
-const page = await browser.newPage({ viewport: { width: 1600, height: 900 } });
+const page = await browser.newPage({ viewport: { width: 1600, height: 1600 } });
 page.on("console", (m) => m.type() === "error" && console.error("page:", m.text()));
 page.on("pageerror", (e) => console.error("page error:", e.message));
 await page.route("http://preview.local/**", (route) => {
@@ -70,7 +71,8 @@ await page.goto("http://preview.local/");
 await page.waitForFunction(() => typeof window.renderShot === "function");
 const data = JSON.parse(fs.readFileSync(input, "utf8"));
 fs.mkdirSync(outDir, { recursive: true });
-for (const s of SHOTS) {
+const shots = shotsFile ? JSON.parse(fs.readFileSync(shotsFile, "utf8")) : SHOTS;
+for (const s of shots) {
 	const shot = s.stall ? stallShot(data, s) : s;
 	await page.evaluate((shot) => window.renderShot(shot), shot);
 	const out = path.join(outDir, `${s.name}.png`);

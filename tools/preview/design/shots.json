@@ -1,0 +1,12 @@
+[
+  { "name": "design-map-topdown", "mode": "day", "world": true, "camera": [0, 900, 0], "target": [0, 0, 0], "ortho": 390, "width": 1600, "height": 1600, "mapLabels": true, "labelDistance": 0, "shadowRadius": 420 },
+  { "name": "design-hub", "mode": "day", "world": true, "camera": [-112, 56, 4], "target": [34, 0, 0], "fov": 55, "labelDistance": 175, "shadowRadius": 140 },
+  { "name": "design-hub-close", "mode": "day", "world": true, "camera": [6, 13, -12], "target": [54, 5, 28], "fov": 60, "labelDistance": 90 },
+  { "name": "design-base-nursery-unlocked", "mode": "day", "frame": "yourBase", "camera": [36, 56, -74], "target": [0, 0, 6], "labelDistance": 130 },
+  { "name": "design-nursery-interior", "mode": "day", "frame": "yourBase", "camera": [0, 30, 4], "target": [0, 0, 31], "fov": 58, "labelDistance": 80 },
+  { "name": "design-base-nursery-locked", "mode": "day", "frame": "neighbourBase", "camera": [36, 56, -74], "target": [0, 0, 6], "labelDistance": 130 },
+  { "name": "design-owner-overlay", "mode": "day", "frame": "studio", "camera": [0, 7.5, -25], "target": [0, 5, 0], "fov": 55, "labelDistance": 80 },
+  { "name": "design-owner-overlay-others", "mode": "day", "frame": "studio", "camera": [0, 7.5, -25], "target": [0, 5, 0], "fov": 55, "labelDistance": 80, "hideOwner": true },
+  { "name": "design-base-owner-view", "mode": "day", "frame": "yourBase", "camera": [-2, 12, -40], "target": [0, 4, -10], "fov": 62, "labelDistance": 80 },
+  { "name": "design-hub-night", "mode": "night", "world": true, "camera": [-112, 56, 4], "target": [34, 0, 0], "fov": 55, "labelDistance": 175, "shadowRadius": 140, "maxLights": 14 }
+]

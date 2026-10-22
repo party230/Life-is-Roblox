@@ -1,5 +1,18 @@
 # Changelog
 
+## v3 design round (awaiting feedback)
+
+- **Design renders** for the 12-base ring and hub map, the shared conveyor, the nursery (locked and unlocked)
+  and the owner-only loyalty/runaway overlay, plus Food Shop and Nursery UI mockups, all in
+  `assets/mockups/v3/`.
+- Proposed numbers and open questions are in `docs/DESIGN_V3.md`; the overrides are logged as D37.
+- **Preview tooling:**
+  - shared headless runtime (`tools/preview/runtime.luau`)
+  - design-only map builder (`tools/preview/design/`)
+  - renderer: top-down orthographic shots, per-shot frames, bars/pills, an owner-only row toggle, map labels
+- **Preview fix:** nameplates now sit above the heads. Lune keeps `Attachment.Position` separate from `CFrame`,
+  so they were drawn at body height; the slice world renders are redone.
+
 ## Variant redesign
 
 - Variants are now **Normal, Rainbow (×4) and Evil (×6)**; Gold and Diamond are gone, and Normal takes

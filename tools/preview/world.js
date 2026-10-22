@@ -5,8 +5,8 @@ import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
 import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
 
-const W = 1600;
-const H = 900;
+let W = 1600;
+let H = 900;
 const PX = 64; // canvas pixels per stud for labels
 
 const srgb = (c) => new THREE.Color().setRGB(c[0], c[1], c[2], THREE.SRGBColorSpace);
@@ -101,6 +101,51 @@ function materialFor(p, night) {
 	return m;
 }
 
+function roundRect(g, x, y, w, h, r) {
+	g.beginPath();
+	g.moveTo(x + r, y);
+	g.arcTo(x + w, y, x + w, y + h, r);
+	g.arcTo(x + w, y + h, x, y + h, r);
+	g.arcTo(x, y + h, x, y, r);
+	g.arcTo(x, y, x + w, y, r);
+	g.closePath();
+}
+
+const hexToRgb = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16) / 255);
+const css = (c, a = 1) => `rgba(${c.map((v) => Math.round(v * 255)).join(",")},${a})`;
+
+// A compact bar row: optional icon on the left, rounded track, fill, black outline.
+function drawBar(g, l, cw, y, lh) {
+	const w = (l.width || 1) * cw;
+	const x0 = (cw - w) / 2;
+	const pad = lh * 0.14;
+	let bx = x0;
+	if (l.icon) {
+		g.font = `700 ${lh * 0.95}px Fredoka`;
+		g.lineWidth = lh * 0.16;
+		g.strokeStyle = "#000";
+		g.strokeText(l.icon, x0 + lh * 0.5, y + lh / 2);
+		g.fillStyle = css(l.iconColor);
+		g.fillText(l.icon, x0 + lh * 0.5, y + lh / 2);
+		bx = x0 + lh * 1.05;
+	}
+	const bw = x0 + w - bx;
+	g.fillStyle = "#000";
+	roundRect(g, bx, y + pad, bw, lh - pad * 2, (lh - pad * 2) / 2);
+	g.fill();
+	const inset = lh * 0.09;
+	g.fillStyle = css(l.back);
+	roundRect(g, bx + inset, y + pad + inset, bw - inset * 2, lh - (pad + inset) * 2, (lh - (pad + inset) * 2) / 2);
+	g.fill();
+	const fw = Math.max(lh * 0.3, (bw - inset * 2) * Math.max(0, Math.min(1, l.value)));
+	g.fillStyle = css(l.color);
+	roundRect(g, bx + inset, y + pad + inset, fw, lh - (pad + inset) * 2, (lh - (pad + inset) * 2) / 2);
+	g.fill();
+	g.fillStyle = "rgba(255,255,255,0.35)";
+	roundRect(g, bx + inset * 2, y + pad + inset * 1.6, Math.max(0, fw - inset * 2), (lh - (pad + inset) * 2) * 0.32, lh * 0.1);
+	g.fill();
+}
+
 function fitFont(g, text, maxW, maxH) {
 	let size = maxH * 0.86;
 	g.font = `700 ${size}px Fredoka`;
@@ -124,7 +169,18 @@ function labelCanvas(lines, wStuds, hStuds, strokeScale) {
 	let y = 0;
 	for (const l of lines) {
 		const lh = l.height * c.height;
-		const size = fitFont(g, l.text, c.width * 0.96, lh);
+		if (l.kind === "bar") {
+			drawBar(g, l, c.width, y, lh);
+			y += lh;
+			continue;
+		}
+		if (l.background) {
+			const w = (l.width || 1) * c.width;
+			g.fillStyle = `rgba(${l.background.map((v) => Math.round(v * 255)).join(",")},${l.backgroundAlpha})`;
+			roundRect(g, (c.width - w) / 2, y + lh * 0.06, w, lh * 0.88, lh * 0.44);
+			g.fill();
+		}
+		const size = fitFont(g, l.text, (l.width || 1) * c.width * 0.9, l.background ? lh * 0.78 : lh);
 		if (l.stroke > 0) {
 			g.lineWidth = Math.max(3, size * strokeScale);
 			g.strokeStyle = `rgb(${l.strokeColor.map((v) => v * 255).join(",")})`;
@@ -198,6 +254,8 @@ window.renderShot = async (shot) => {
 	await fontReady;
 	data ??= await (await fetch("/world.json")).json();
 	const night = shot.mode === "night";
+	W = shot.width ?? 1600;
+	H = shot.height ?? 900;
 
 	const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
 	renderer.setSize(W, H);
@@ -211,14 +269,24 @@ window.renderShot = async (shot) => {
 
 	const scene = new THREE.Scene();
 	scene.background = skyTexture(night);
-	scene.fog = new THREE.Fog(night ? 0x2a1460 : 0xcfe9ff, 250, 900);
+	if (!shot.ortho) scene.fog = new THREE.Fog(night ? 0x2a1460 : 0xcfe9ff, 250, 900);
 	if (night) stars(scene);
 
-	const origin = matrixOf(data.plotOrigin);
+	// camera/target are local to data[shot.frame ?? "plotOrigin"] unless shot.world
+	const frame = data[shot.frame ?? "plotOrigin"];
+	const origin = frame ? matrixOf(frame) : new THREE.Matrix4();
 	const local = (v) => new THREE.Vector3(...v).applyMatrix4(origin);
-	const camera = new THREE.PerspectiveCamera(shot.fov ?? 55, W / H, 0.5, 4000);
 	const camPos = shot.world ? new THREE.Vector3(...shot.camera) : local(shot.camera);
 	const target = shot.world ? new THREE.Vector3(...shot.target) : local(shot.target);
+	let camera;
+	if (shot.ortho) {
+		// top-down map: orthographic, north (-Z) up
+		const h = shot.ortho;
+		camera = new THREE.OrthographicCamera(-h * (W / H), h * (W / H), h, -h, 1, 4000);
+		camera.up.set(0, 0, -1);
+	} else {
+		camera = new THREE.PerspectiveCamera(shot.fov ?? 55, W / H, 0.5, 4000);
+	}
 	camera.position.copy(camPos);
 	camera.lookAt(target);
 
@@ -235,7 +303,11 @@ window.renderShot = async (shot) => {
 	sun.shadow.normalBias = 0.05;
 	scene.add(sun, sun.target);
 	if (night) {
-		for (const l of data.lights) {
+		// nearest lights only (WebGL has a per-shader light budget)
+		const near = [...data.lights].sort(
+			(a, b) => target.distanceTo(new THREE.Vector3(...a.pos)) - target.distanceTo(new THREE.Vector3(...b.pos)),
+		);
+		for (const l of near.slice(0, shot.maxLights ?? 12)) {
 			const pl = new THREE.PointLight(srgb(l.color), l.brightness * 60, l.range * 2.2, 1.6);
 			pl.position.set(...l.pos);
 			scene.add(pl);
@@ -272,13 +344,36 @@ window.renderShot = async (shot) => {
 	// BillboardGuis: world-scaled sprites (size in studs), unlit
 	for (const b of data.billboards) {
 		if (b.lines.length === 0) continue;
+		// what other players see: the owner-only rows are simply not there, and the plate shrinks to fit
+		let lines = b.lines;
+		let size = b.size;
+		if (shot.hideOwner && lines.some((l) => l.owner)) {
+			const keep = lines.filter((l) => !l.owner);
+			const frac = keep.reduce((t, l) => t + l.height, 0);
+			lines = keep.map((l) => ({ ...l, height: l.height / frac }));
+			size = [size[0], size[1] * frac];
+		}
 		const pos = new THREE.Vector3(...b.pos);
-		if (pos.distanceTo(camPos) > (shot.labelDistance ?? 140)) continue;
-		const tex = labelCanvas(b.lines, b.size[0], b.size[1], 0.16);
+		const maxD = Math.min(shot.labelDistance ?? 140, b.maxDistance || 1e9);
+		if (pos.distanceTo(camPos) > maxD) continue;
+		const tex = labelCanvas(lines, size[0], size[1], 0.16);
 		const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, toneMapped: false, transparent: true, fog: false }));
-		sprite.scale.set(b.size[0], b.size[1], 1);
-		sprite.position.copy(pos).add(new THREE.Vector3(0, b.sizeOffset[1] * b.size[1], 0));
+		sprite.scale.set(size[0], size[1], 1);
+		sprite.position.copy(pos).add(new THREE.Vector3(0, b.sizeOffset[1] * size[1], 0));
 		scene.add(sprite);
+	}
+
+	// Map annotations (top-down design maps only)
+	if (shot.mapLabels) {
+		for (const m of data.mapLabels ?? []) {
+			const w = shot.mapLabelWidth ?? 48;
+			const tex = labelCanvas([{ kind: "text", text: m.text, color: hexToRgb(m.color), height: 1, stroke: 4, strokeColor: [0, 0, 0] }], w / 4, 2.2, 0.18);
+			const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, toneMapped: false, transparent: true, fog: false, depthTest: false }));
+			sprite.scale.set(w, w * (2.2 / (w / 4)), 1);
+			sprite.position.set(m.pos[0], 60, m.pos[2]);
+			sprite.renderOrder = 10;
+			scene.add(sprite);
+		}
 	}
 
 	// SurfaceGuis: text planes on the part face
