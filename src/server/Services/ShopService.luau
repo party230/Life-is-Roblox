@@ -112,8 +112,8 @@ end
 -- Walk the root from where it is to `target` over `seconds`. Returns the tween.
 local function walk(model: Model, target: CFrame, seconds: number): Tween
 	local root = model.PrimaryPart :: BasePart
-	-- PivotTo uses the model pivot (feet); the root sits half its height above the feet
-	local offset = model.WorldPivot:ToObjectSpace(root.CFrame)
+	-- `target` is a pivot (feet) CFrame; the root sits above its pivot by the inverse of its PivotOffset
+	local offset = root.PivotOffset:Inverse()
 	model:SetAttribute("Walking", true)
 	local tween = TweenService:Create(
 		root,

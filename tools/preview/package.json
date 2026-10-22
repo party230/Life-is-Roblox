@@ -1,0 +1,6 @@
+{
+  "name": "rot-shift-preview",
+  "private": true,
+  "type": "module",
+  "devDependencies": { "playwright-core": "1.47.2", "three": "0.170.0" }
+}

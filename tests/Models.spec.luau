@@ -18,6 +18,9 @@ local function checkContract(model: Model)
 	for _, name in { "Nameplate", "Vfx", "TrailA", "TrailB" } do
 		expect(root:FindFirstChild(name)).to.be.ok()
 	end
+	-- PivotTo(ground) must stand the model on the ground: the Root's pivot is at the feet
+	local pivot = root.CFrame * root.PivotOffset
+	expect(pivot.Position.Y).to.be.near(root.CFrame.Position.Y - root.Size.Y / 2, 1e-4)
 	local anim = root:FindFirstChild("Anim") :: Motor6D
 	expect(anim).to.be.ok()
 	expect(anim.Part0).to.equal(root)
@@ -81,6 +84,8 @@ describe("Character models", function()
 			local hover = model:GetAttribute("Hover") :: number
 			if hover == 0 then
 				expect(math.abs(lowestPoint(model)) < 0.35).to.equal(true)
+				local root = model.PrimaryPart :: BasePart
+				expect((root.CFrame * root.PivotOffset).Position.Y).to.be.near(0, 1e-4)
 			end
 		end)
 	end
@@ -108,8 +113,8 @@ describe("Character models", function()
 		end
 		Kit.adopt(model)
 		checkContract(model)
-		expect(model.WorldPivot.Position.Y).to.be.near(0, 1e-4) -- feet at the lowest point
 		local root = model.PrimaryPart :: BasePart
+		expect((root.CFrame * root.PivotOffset).Position.Y).to.be.near(0, 1e-4) -- feet at the lowest point
 		expect(root.CFrame.Position.X).to.be.near(10, 1e-4)
 	end)
 end)

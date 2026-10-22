@@ -48,6 +48,9 @@ function Kit.new(name: string, height: number, width: number?): Kit
 	root.Transparency = 1
 	root.Size = Vector3.new(w, height, w)
 	root.CFrame = CFrame.new(0, height / 2, 0)
+	-- The model pivot is the PrimaryPart's pivot (Roblox ignores Model.WorldPivot once PrimaryPart is set),
+	-- so put the Root's pivot at the feet: PivotTo(groundCFrame) then stands the model on the ground.
+	root.PivotOffset = CFrame.new(0, -height / 2, 0)
 	root.Parent = model
 	model.PrimaryPart = root
 
@@ -349,6 +352,7 @@ function Kit.adopt(model: Model, opts: { hover: number?, idle: string? }?): Mode
 	root.Transparency = 1
 	root.Size = Vector3.new(width, height, width)
 	root.CFrame = CFrame.new(feet + Vector3.new(0, height / 2, 0))
+	root.PivotOffset = CFrame.new(0, -height / 2, 0) -- pivot at the feet (see Kit.new)
 	root.Parent = model
 	Kit.addAttachments(root, height)
 
@@ -386,7 +390,6 @@ function Kit.adopt(model: Model, opts: { hover: number?, idle: string? }?): Mode
 	local o: { hover: number?, idle: string? } = opts or {}
 	model:SetAttribute("Hover", o.hover or model:GetAttribute("Hover") or 0)
 	model:SetAttribute("Idle", o.idle or model:GetAttribute("Idle") or "bob")
-	model.WorldPivot = CFrame.new(feet)
 	return model
 end
 
@@ -394,7 +397,6 @@ function Kit.finish(self: Kit, opts: { hover: number?, idle: string? }?): Model
 	local o: { hover: number?, idle: string? } = opts or {}
 	self.model:SetAttribute("Hover", o.hover or 0) -- flying characters bob higher
 	self.model:SetAttribute("Idle", o.idle or "bob")
-	self.model.WorldPivot = CFrame.identity
 	return self.model
 end
 

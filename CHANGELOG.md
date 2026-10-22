@@ -16,6 +16,14 @@
   - `docs/MODEL_CONTRACT.md` documents the contract
   - `tests/Models.spec.luau` checks it
 - **Previews:** re-rendered (6 characters × 5 variants), with before/after composites in `assets/previews/`.
+- **Fix: brainrots no longer sink halfway into the carpet and pedestals.** Roblox ignores `Model.WorldPivot`
+  once a PrimaryPart is set, so `PivotTo` put the Root's centre on the ground. The Root's `PivotOffset` now
+  puts the pivot at the feet, and the carpet walk uses it. The contract test checks this.
+- **World preview** (`tools/preview/world.luau` + `world.mjs`):
+  - runs the real `Builder.build()` and `Brainrot.create` headless in Lune
+  - draws the result with three.js in headless Chromium
+  - shots of the base, the carpet, the Egg Shop and the overview, by day and night, in
+    `assets/previews/world-*.png`
 
 ## Vertical slice (Phase 1 redo, awaiting feedback)
 

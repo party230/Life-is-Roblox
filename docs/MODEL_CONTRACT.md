@@ -17,8 +17,9 @@ never breaks a save or a carpet.
 
 ## What every model has
 
-- **`PrimaryPart` = `Root`**: anchored, invisible, non-colliding. Its pivot is at the feet (ground
-  contact), facing -Z. The server moves only this part.
+- **`PrimaryPart` = `Root`**: anchored, invisible, non-colliding, facing -Z. Its `PivotOffset` puts the
+  pivot at the feet (ground contact), so `model:PivotTo(groundCFrame)` stands the model on the ground.
+  (Roblox ignores `Model.WorldPivot` once a PrimaryPart is set.) The server moves only this part.
 - **Attachments on Root**: `Nameplate` (above the head), `Vfx` (centre of the body), `TrailA` / `TrailB`
   (for the Rainbow trail).
 - **Motor6D `Anim`** from Root to `Body`. The client idles/walks the model by setting `Anim.Transform`.
