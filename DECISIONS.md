@@ -66,3 +66,23 @@ idempotent `ProcessReceipt`. The store is named `PlayerData_v1`. Schema changes 
 
 **D14. Placeholder species** (12 original names in `Config/Species.luau`) so systems have data to work on.
 The Phase 1 concept sheet replaces the names and looks after your feedback.
+
+## Phase 1: Mockups
+
+**D15. Mockups are generated, not hand-drawn.** They're SVG built in code and rendered to PNG, so feedback
+rounds are quick edits, and the creature shapes can serve as a reference when the 3D models get built.
+
+**D16. Proposed species (replace the Phase 0 placeholders once approved):** Mugpup, Toasturtle and Sockodile
+(Common); Lampingo and Brollybun (Uncommon); Fridgehog and Kettlephant (Rare); Cartshark and Owlarm (Epic);
+Pianoceros (Legendary); Spinwhale (Mythic); Tellama (Secret). Each one is an everyday object + an animal + a
+face. Before launch, the names still need a trademark/store search.
+
+**D17. Secret rarity colour.** Flat black (#141414) disappears on night UI. Proposal: a black chip with a
+rainbow rim. This needs `Config/Rarities.luau` to carry a style flag, not just a hex.
+
+**D18. Loyalty readability.** 5 hearts that fill in proportion. Under 30 they turn purple-grey, crack and
+shake. Stolen brainrots wear a mask icon. Uneasy brainrots sweat, glance sideways, and think of a little
+house. Rogue ones get red eyes and a purple aura.
+
+**D19. HUD button budget (max 6).** Day: Shop, Eggs, Base, Trade, Store, Menu. Night: Shop, Defend, Base,
+Store, Menu, BONK. Roblox's own controls aren't counted.

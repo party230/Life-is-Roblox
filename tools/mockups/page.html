@@ -1,0 +1,26 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+@font-face { font-family: Fredoka; src: url(fonts/Fredoka-VF.ttf); font-weight: 300 700; }
+@font-face { font-family: Nunito; src: url(fonts/Nunito-VF.ttf); font-weight: 200 1000; }
+html, body { margin: 0; padding: 0; background: #000; }
+svg { display: block; }
+</style>
+</head>
+<body>
+<script src="core.js"></script>
+<script src="creatures.js"></script>
+<script src="scene.js"></script>
+<script src="screens.js"></script>
+<script>
+document.fonts.load("700 20px Fredoka").then(() => document.fonts.load("600 20px Nunito")).then(() => {
+	const page = PARAMS.get("page") || "concept";
+	const out = PAGES[page]();
+	document.body.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="${out.width}" height="${out.height}" viewBox="0 0 ${out.width} ${out.height}">${MUTATION_DEFS}${out.svg}</svg>`;
+	window.__done = { width: out.width, height: out.height };
+});
+</script>
+</body>
+</html>

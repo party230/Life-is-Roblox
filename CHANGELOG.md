@@ -1,5 +1,15 @@
 # Changelog
 
+## Phase 1: Mockups (awaiting feedback)
+
+- 13 PNGs in `assets/mockups/`: HUD, conveyor shop, inspect panel, base layout, map overview and the
+  12-species concept sheet, each in day and night lighting, plus `00-overview.png` with everything side by side.
+- `tools/mockups/`: SVG-in-browser generator so mockups can be re-rendered after feedback.
+- Studio smoke tests (`src/server/Dev/SmokeTests.luau`, opt-in through a Workspace attribute): ProfileStore
+  save → read back → reload, plus a check that the player's save loaded.
+- Removed legacy `Workspace.FilteringEnabled` and the redundant `Players` defaults from the Rojo project
+  (a blank-place sync could choke on them).
+
 ## Phase 0: Setup
 
 - Project scaffold: Rojo project (`default.project.json`), Rokit tool pins, Wally manifest (Fusion),
