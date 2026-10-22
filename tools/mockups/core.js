@@ -291,7 +291,13 @@ const ICON = {
 	turret: () =>
 		rect(-18, 6, 36, 20, "#8A93A8", { sw: 4, r: 4 }) +
 		path("M-6,6 L-6,-8 L-20,-14 C-26,-24 -14,-30 -8,-24 L-6,-20 L-4,-30 C-2,-36 6,-36 6,-28 L6,-18 L12,-26 C16,-32 24,-26 20,-20 L10,-6 L10,6Z", "#FFD23F", { sw: 3.5 }),
-	moon: (r = 18) => path(`M${r * 0.2},${-r} A${r},${r} 0 1 0 ${r * 0.2},${r} A${r * 0.78},${r * 0.78} 0 1 1 ${r * 0.2},${-r} Z`, "#FFE88A", { sw: 3.5 }),
+	moon: (r = 18) => {
+		const id = uid("moon");
+		return (
+			`<defs><mask id="${id}"><rect x="${-r * 2}" y="${-r * 2}" width="${r * 4}" height="${r * 4}" fill="#fff"/><circle cx="${r * 0.55}" cy="${-r * 0.3}" r="${r * 0.85}" fill="#000"/></mask></defs>` +
+			`<g mask="url(#${id})">${circle(0, 0, r, "#FFE88A", { sw: 3.5 })}</g>`
+		);
+	},
 	sun: (r = 16) => {
 		let s = "";
 		for (let i = 0; i < 8; i++) {

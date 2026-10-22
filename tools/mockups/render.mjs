@@ -7,7 +7,7 @@ import fs from "node:fs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const outDir = path.resolve(here, "../../assets/mockups");
-const PAGES = ["hud", "shop", "inspect", "base", "map", "concept"];
+const PAGES = ["hud", "shop", "inspect", "base", "map", "concept", "picker", "eggs", "hatch"];
 const pages = process.argv.slice(2).length ? process.argv.slice(2) : [...PAGES, "overview"];
 
 // Prefer CHROMIUM_PATH, else a preinstalled Playwright headless shell, else Playwright's default.

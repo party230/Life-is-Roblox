@@ -160,6 +160,13 @@ function baseScene(cam, o = {}) {
 	add(PLOT.w + 7, box(cam, PLOT.w, -1, 1, 1, 15, 1.6, wallC));
 	add(PLOT.w + 40, box(cam, PLOT.w, 22, 1, 1, 18, 1.6, wallC));
 	pts.exit = P(PLOT.w, 18, 3);
+	if (night) {
+		// Lane exits seal at Dusk: translucent barrier across the gap.
+		const seal = [P(PLOT.w + 0.5, 14, 1), P(PLOT.w + 0.5, 22, 1), P(PLOT.w + 0.5, 22, 5), P(PLOT.w + 0.5, 14, 5)];
+		add(PLOT.w + 22.5, poly(seal, "#7FD3FF", { sw: 3.5, opacity: 0.55 }) + path(`M${P(PLOT.w + 0.5, 15, 2).join(",")} L${P(PLOT.w + 0.5, 21, 4).join(",")} M${P(PLOT.w + 0.5, 15, 4).join(",")} L${P(PLOT.w + 0.5, 21, 2).join(",")}`, "none", { sw: 3, stroke: "#FFFFFF", opacity: 0.8 }));
+		glows.push(glow(...P(PLOT.w, 18, 3), sz(6), "#7FD3FF", 0.4));
+		overlay.push(chip(...P(PLOT.w + 2, 18, 7).map((v, i) => v - (i === 0 ? 50 : 0)), "SEALED", "#3A86D9", { size: 14, w: 100 }));
+	}
 	// front wall with gate gap (x 18..30)
 	add(18 + 40, box(cam, -1, PLOT.d, 1, 19, 1, 1.6, wallC));
 	add(PLOT.w + 40, box(cam, 30, PLOT.d, 1, 19, 1, 1.6, wallC));
@@ -292,7 +299,7 @@ function baseScene(cam, o = {}) {
 
 	// Night: ferals + Rotter clue footprints
 	if (night && o.ferals !== false) {
-		const ferals = o.feralsAt || [[27, 46], [33, 49], [40, 21.5], [62, 26]];
+		const ferals = o.feralsAt || [[27, 46], [33, 49], [40, 21.5], [56, 44]];
 		ferals.forEach(([fx, fy]) => {
 			const [x, y] = P(fx, fy, fx < PLOT.w && fy < PLOT.d ? 1 : 0);
 			add(fx + fy + 0.9, sprite(feralArt(), x, y, sz(4.4)));
