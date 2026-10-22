@@ -4,7 +4,7 @@
 return table.freeze({
 	Game = require("@self/Game"),
 	Rarities = require("@self/Rarities"),
-	Mutations = require("@self/Mutations"),
+	Variants = require("@self/Variants"),
 	Species = require("@self/Species"),
 	Shop = require("@self/Shop"),
 	Eggs = require("@self/Eggs"),

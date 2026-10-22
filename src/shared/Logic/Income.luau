@@ -1,27 +1,28 @@
 --!strict
--- Income maths (D10): BASE_INCOME_PER_SEC x species.incomeFactor x rarity.incomeMult x mutation.incomeMult.
+-- Income maths (D10): BASE_INCOME_PER_SEC x character incomeFactor x rarity.incomeMult x variant.incomeMult.
 -- Only brainrots standing on a pedestal earn.
 
 local Config = require("../Config")
 local Types = require("../Types")
+local Catalog = require("./Catalog")
 
 local Income = {}
 
-function Income.perSec(speciesId: string, mutation: string): number
-	local species = Config.Species.byId[speciesId]
-	if not species then
-		return 0
-	end
-	local rarity = Config.Rarities.byId[species.rarity]
-	local mut = Config.Mutations.byId[mutation] or Config.Mutations.byId.None
-	return Config.Game.BASE_INCOME_PER_SEC * species.incomeFactor * rarity.incomeMult * mut.incomeMult
+function Income.perSec(speciesId: string, variant: string, rarity: string?): number
+	local fallbackRarity = rarity
+		or (Config.Species.byId[speciesId] and Config.Species.byId[speciesId].rarity)
+		or "Common"
+	local species = Catalog.resolve(speciesId, fallbackRarity)
+	local rarityDef = Config.Rarities.byId[species.rarity]
+	local v = Config.Variants.byId[variant] or Config.Variants.byId.Normal
+	return Config.Game.BASE_INCOME_PER_SEC * species.incomeFactor * rarityDef.incomeMult * v.incomeMult
 end
 
 -- Recomputes the cached incomePerSec on every brainrot (after balance changes). Returns true if any changed.
 function Income.refresh(data: Types.PlayerData): boolean
 	local changed = false
 	for _, b in data.brainrots do
-		local value = Income.perSec(b.speciesId, b.mutation)
+		local value = Income.perSec(b.speciesId, b.variant, b.rarity)
 		if b.incomePerSec ~= value then
 			b.incomePerSec = value
 			changed = true

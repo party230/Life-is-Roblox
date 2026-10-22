@@ -46,15 +46,42 @@ describe("Config", function()
 		end).to.throw()
 	end)
 
-	it("has 12 species with unique ids and a species for every rarity", function()
-		expect(#Config.Species.list).to.equal(12)
-		local rarities: { [string]: boolean } = {}
+	it("has the 50-character roster with the requested rarity split", function()
+		expect(#Config.Species.list).to.equal(50)
+		local counts: { [string]: number } = {}
 		for _, s in Config.Species.list do
-			rarities[s.rarity] = true
+			counts[s.rarity] = (counts[s.rarity] or 0) + 1
 		end
-		for _, r in Config.Rarities.list do
-			expect(rarities[r.id]).to.equal(true)
+		expect(counts.Common).to.equal(10)
+		expect(counts.Uncommon).to.equal(9)
+		expect(counts.Rare).to.equal(9)
+		expect(counts.Epic).to.equal(8)
+		expect(counts.Legendary).to.equal(6)
+		expect(counts.Mythic).to.equal(5)
+		expect(counts.Secret).to.equal(3)
+	end)
+
+	it("has the 5 vertical-slice characters modelled", function()
+		for _, id in
+			{
+				"tralalero_tralala",
+				"tung_tung_tung_sahur",
+				"bombardiro_crocodilo",
+				"ballerina_cappuccina",
+				"brr_brr_patapim",
+			}
+		do
+			expect(Config.Species.byId[id].model).to.equal(id)
 		end
+	end)
+
+	it("has the 5 variants with the requested multipliers", function()
+		local v = Config.Variants.byId
+		expect(v.Normal.incomeMult).to.equal(1)
+		expect(v.Gold.incomeMult).to.equal(1.5)
+		expect(v.Diamond.incomeMult).to.equal(2)
+		expect(v.Rainbow.incomeMult).to.equal(4)
+		expect(v.Dark.incomeMult).to.equal(6)
 	end)
 
 	it("lists every product from the monetisation table", function()
@@ -76,15 +103,9 @@ describe("Config", function()
 			expect(#Validate.run(broken).errors > 0).to.equal(true)
 		end)
 
-		it("a rollable rarity with no species", function()
+		it("a non-snake_case species id", function()
 			local broken = thaw(Config)
-			local kept = {}
-			for _, s in broken.Species.list do
-				if s.rarity ~= "Secret" then
-					table.insert(kept, s)
-				end
-			end
-			broken.Species.list = kept
+			broken.Species.list[1].id = "Bad Id"
 			expect(#Validate.run(broken).errors > 0).to.equal(true)
 		end)
 

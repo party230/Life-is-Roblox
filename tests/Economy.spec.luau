@@ -2,6 +2,7 @@
 local Harness = require("./Harness")
 local describe, it, expect = Harness.describe, Harness.it, Harness.expect
 
+local Catalog = require("../src/shared/Logic/Catalog")
 local Config = require("../src/shared/Config")
 local Income = require("../src/shared/Logic/Income")
 local Roll = require("../src/shared/Logic/Roll")
@@ -24,22 +25,24 @@ local function fixed(v: number): () -> number
 end
 
 describe("Income", function()
-	it("multiplies base x species x rarity x mutation", function()
-		-- fridgehog: Rare (x6), factor 1.0; Golden x2
-		expect(Income.perSec("fridgehog", "None")).to.be.near(6)
-		expect(Income.perSec("fridgehog", "Golden")).to.be.near(12)
-		expect(Income.perSec("sockodile", "None")).to.be.near(1.1)
-		expect(Income.perSec("nope", "None")).to.equal(0)
+	it("multiplies base x character x rarity x variant", function()
+		-- brr_brr_patapim: Rare (x6), factor 1.0
+		expect(Income.perSec("brr_brr_patapim", "Normal")).to.be.near(6)
+		expect(Income.perSec("brr_brr_patapim", "Gold")).to.be.near(9)
+		expect(Income.perSec("brr_brr_patapim", "Dark")).to.be.near(36)
+		expect(Income.perSec("tralalero_tralala", "Rainbow")).to.be.near(120 * 4)
+	end)
+
+	it("pays a removed character at its stored rarity (placeholder)", function()
+		expect(Income.perSec("brr_brr_patapim", "Normal", "Rare")).to.be.near(6)
 	end)
 
 	it("only counts brainrots on pedestals", function()
 		local data = Template.create()
-		local a = Roll.newBrainrot("a", "mugpup", "None", 1, 0)
-		local b = Roll.newBrainrot("b", "fridgehog", "None", 1, 0)
-		data.brainrots.a = a
-		data.brainrots.b = b
+		data.brainrots.a = Roll.newBrainrot("a", "brr_brr_patapim", "Normal", 1, 0)
+		data.brainrots.b = Roll.newBrainrot("b", "tralalero_tralala", "Normal", 1, 0)
 		data.pedestals["1"] = "a"
-		expect(Income.basePerSec(data)).to.be.near(1)
+		expect(Income.basePerSec(data)).to.be.near(6)
 	end)
 
 	it("pays offline income at the reduced rate, capped", function()
@@ -58,22 +61,23 @@ describe("Income", function()
 
 	it("refreshes cached income after balance changes", function()
 		local data = Template.create()
-		local a = Roll.newBrainrot("a", "mugpup", "None", 1, 0)
+		local a = Roll.newBrainrot("a", "brr_brr_patapim", "Normal", 1, 0)
 		a.incomePerSec = 999
 		data.brainrots.a = a
 		expect(Income.refresh(data)).to.equal(true)
-		expect(a.incomePerSec).to.be.near(1)
+		expect(a.incomePerSec).to.be.near(6)
 		expect(Income.refresh(data)).to.equal(false)
 	end)
 end)
 
 describe("Roll", function()
-	it("picks species of the rolled rarity", function()
+	it("only rolls spawnable characters of the rolled rarity", function()
 		local rng = lcg(7)
 		for _ = 1, 200 do
-			local rarity = Roll.rarity(Config.Shop.RARITY_WEIGHTS, rng) :: any
+			local rarity = Roll.rarity(Config.Shop.RARITY_WEIGHTS, rng) :: string
 			local species = Roll.species(rarity, rng) :: string
 			expect(Config.Species.byId[species].rarity).to.equal(rarity)
+			expect(Catalog.isSpawnable(Config.Species.byId[species])).to.equal(true)
 		end
 	end)
 
@@ -84,36 +88,21 @@ describe("Roll", function()
 		end
 	end)
 
-	it("luck makes Rare+ more likely", function()
-		local function rareRate(luck: number): number
-			local rng = lcg(11)
-			local n = 0
-			for _ = 1, 4000 do
-				local r = Roll.rarity(Config.Shop.RARITY_WEIGHTS, rng, luck) :: any
-				if Config.Rarities.byId[r].order >= 3 then
-					n += 1
-				end
-			end
-			return n
-		end
-		expect(rareRate(3) > rareRate(1) * 2).to.equal(true)
-	end)
-
-	it("rolls None most of the time and only known mutations", function()
-		expect(Roll.mutation(fixed(0.0))).to.equal("None")
+	it("rolls Normal most of the time and only known variants", function()
+		expect(Roll.variant(fixed(0.5))).to.equal("Normal")
 		local rng = lcg(5)
 		for _ = 1, 300 do
-			expect(Config.Mutations.byId[Roll.mutation(rng)]).to.be.ok()
+			expect(Config.Variants.byId[Roll.variant(rng)]).to.be.ok()
 		end
 	end)
 
 	it("builds a fresh brainrot record", function()
-		local b = Roll.newBrainrot("id1", "owlarm", "Rainbow", 42, 1000)
+		local b = Roll.newBrainrot("id1", "ballerina_cappuccina", "Diamond", 42, 1000)
 		expect(b.rarity).to.equal("Epic")
+		expect(b.variant).to.equal("Diamond")
 		expect(b.ownerUserId).to.equal(42)
 		expect(b.isStolen).to.equal(false)
-		expect(b.loyalty).to.equal(0)
-		expect(b.incomePerSec).to.be.near(15 * 1.05 * 5)
+		expect(b.incomePerSec).to.be.near(15 * 2)
 	end)
 end)
 
@@ -125,15 +114,13 @@ describe("ShopStock", function()
 		expect(ShopStock.nicePrice(3)).to.equal(5)
 	end)
 
-	it("generates STOCK_SIZE unsold listings with unique ids and prices near the rarity price", function()
-		local stock = ShopStock.generate(lcg(9), "r12")
-		expect(#stock).to.equal(Config.Shop.STOCK_SIZE)
-		local seen: { [string]: boolean } = {}
-		for _, l in stock do
-			expect(seen[l.id]).to.equal(nil)
-			seen[l.id] = true
-			expect(l.sold).to.equal(false)
-			local base = Config.Rarities.byId[l.rarity].shopPrice
+	it("carpet listings are spawnable, priced by rarity x variant", function()
+		local rng = lcg(9)
+		for i = 1, 100 do
+			local l = ShopStock.carpetListing(rng, `c{i}`) :: any
+			expect(l).to.be.ok()
+			expect(Catalog.isSpawnable(Config.Species.byId[l.speciesId])).to.equal(true)
+			local base = Config.Rarities.byId[l.rarity].shopPrice * Config.Variants.byId[l.variant].priceMult
 			expect(l.price >= base * (1 - Config.Shop.PRICE_JITTER) * 0.9).to.equal(true)
 			expect(l.price <= base * (1 + Config.Shop.PRICE_JITTER) * 1.1).to.equal(true)
 		end
@@ -160,20 +147,24 @@ describe("Slots", function()
 	it("fills pedestals first, then storage, then refuses", function()
 		local data = Template.create()
 		for i = 1, 8 do
-			expect(Slots.add(data, Roll.newBrainrot(`p{i}`, "mugpup", "None", 1, 0), 0)).to.equal("pedestal")
+			expect(Slots.add(data, Roll.newBrainrot(`p{i}`, "brr_brr_patapim", "Normal", 1, 0), 0)).to.equal(
+				"pedestal"
+			)
 		end
-		expect(Slots.add(data, Roll.newBrainrot("s1", "mugpup", "None", 1, 0), 0)).to.equal("storage")
+		expect(Slots.add(data, Roll.newBrainrot("s1", "brr_brr_patapim", "Normal", 1, 0), 0)).to.equal(
+			"storage"
+		)
 		expect(Slots.storageCount(data)).to.equal(1)
 		for i = 2, Config.Game.STORAGE_SLOTS do
-			Slots.add(data, Roll.newBrainrot(`s{i}`, "mugpup", "None", 1, 0), 0)
+			Slots.add(data, Roll.newBrainrot(`s{i}`, "brr_brr_patapim", "Normal", 1, 0), 0)
 		end
-		expect(Slots.add(data, Roll.newBrainrot("x", "mugpup", "None", 1, 0), 0)).to.equal(nil)
+		expect(Slots.add(data, Roll.newBrainrot("x", "brr_brr_patapim", "Normal", 1, 0), 0)).to.equal(nil)
 		expect(data.brainrots.x).to.equal(nil)
 	end)
 
 	it("sanitize moves brainrots off locked or dangling slots", function()
 		local data = Template.create()
-		data.brainrots.a = Roll.newBrainrot("a", "mugpup", "None", 1, 0)
+		data.brainrots.a = Roll.newBrainrot("a", "brr_brr_patapim", "Normal", 1, 0)
 		data.pedestals["9"] = "a" -- tier I slot
 		data.pedestals["2"] = "ghost"
 		expect(Slots.sanitize(data, 0)).to.equal(true)

@@ -51,6 +51,12 @@ local Game = {
 	-- Server
 	MAX_PLAYERS = 8,
 
+	-- Vertical slice (Phase 1 redo): one base, plaza stall, carpet spawns only characters that have models,
+	-- and the world builds a single plot. Set false once the slice is approved.
+	VERTICAL_SLICE = true,
+	REQUIRE_BUILT_MODELS = true, -- only characters with a model can spawn (others wait for art)
+	STUDIO_DEV_CASH = 1_000_000, -- Studio only (separate DataStore): top cash up to this on join
+
 	-- Joining / plots
 	PLOT_COUNT = 8,
 	PLOT_PICK_SECONDS = 10, -- auto-assign (next to a friend if possible) if the player hasn't picked

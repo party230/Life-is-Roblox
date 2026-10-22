@@ -3,8 +3,10 @@
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 
 local Shared = ReplicatedStorage.Shared
+local Config = require(Shared.Config)
 local Income = require(Shared.Logic.Income)
 local Migrations = require(Shared.Data.Migrations)
 local Remotes = require(Shared.Remotes)
@@ -33,7 +35,8 @@ type Store = {
 }
 
 -- Bump the store name only for a deliberate full wipe (e.g. test servers); use Migrations otherwise.
-local STORE_NAME = "PlayerData_v1"
+-- Studio uses its own store so playtest saves (and dev cash) never touch live data.
+local STORE_NAME = if RunService:IsStudio() then "PlayerData_studio_v1" else "PlayerData_v1"
 
 local DataService = {
 	-- Fired once a player's save is loaded, migrated and ready.
@@ -68,7 +71,7 @@ local function toSnapshot(player: Player, data: Types.PlayerData): Remotes.DataS
 			id = b.id,
 			speciesId = b.speciesId,
 			rarity = b.rarity,
-			mutation = b.mutation,
+			variant = b.variant,
 			incomePerSec = b.incomePerSec,
 			loyalty = b.loyalty,
 			isStolen = b.isStolen,
@@ -112,6 +115,9 @@ local function onPlayerAdded(player: Player)
 	profile:Reconcile()
 
 	local ok, reason = Migrations.run(profile.Data :: any, Template.CURRENT_VERSION)
+	if RunService:IsStudio() and profile.Data.cash < Config.Game.STUDIO_DEV_CASH then
+		profile.Data.cash = Config.Game.STUDIO_DEV_CASH -- Studio-only store, see STORE_NAME
+	end
 	if not ok then
 		warn(`[DataService] {player.UserId}: {reason}`)
 		profile:EndSession()

@@ -9,7 +9,8 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Slots = require(ReplicatedStorage.Shared.Logic.Slots)
 local Types = require(ReplicatedStorage.Shared.Types)
 
-local BrainrotModel = require(ReplicatedStorage.Shared.World.BrainrotModel)
+local Brainrot = require(ReplicatedStorage.Shared.World.Brainrot)
+local Config = require(ReplicatedStorage.Shared.Config)
 local Builder = require(script.Parent.Parent.World.Builder)
 local Entitlements = require(script.Parent.Parent.Entitlements)
 local BaseService = require(script.Parent.BaseService)
@@ -57,13 +58,24 @@ function BrainrotService.sync(player: Player)
 	for id, slot in wanted do
 		if not owned[id] then
 			local b = data.brainrots[id]
-			local model = BrainrotModel.build(b.speciesId, b.mutation)
+			local model = Brainrot.create(b.speciesId, b.rarity, b.variant)
 			model:SetAttribute("BrainrotId", id)
 			model:SetAttribute("Slot", slot)
 			model:SetAttribute("OwnerUserId", player.UserId)
 			model:PivotTo(Builder.pedestalTop(refs, slot))
 			model.Parent = refs.brainrots
 			owned[id] = model
+		end
+	end
+	-- rims glow in the occupant's rarity colour
+	for slot = 1, #Config.Layout.SLOTS do
+		local rim = Builder.rim(refs, slot)
+		if rim and Config.Layout.SLOTS[slot].tier <= BrainrotService.tiers(player) then
+			local id = data.pedestals[tostring(slot)]
+			local b = id and data.brainrots[id]
+			rim.Color = if b
+				then Color3.fromHex(Config.Rarities.byId[b.rarity].color)
+				else Color3.fromHex("#2F8CFF")
 		end
 	end
 end
@@ -96,7 +108,7 @@ function BrainrotService.toPublic(data: Types.PlayerData, b: Types.Brainrot): Ty
 		id = b.id,
 		speciesId = b.speciesId,
 		rarity = b.rarity,
-		mutation = b.mutation,
+		variant = b.variant,
 		incomePerSec = b.incomePerSec,
 		loyalty = b.loyalty,
 		isStolen = b.isStolen,

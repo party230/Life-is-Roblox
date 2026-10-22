@@ -5,6 +5,7 @@ type Controller = { init: () -> (), start: () -> () }
 
 local Controllers = script.Controllers
 local controllers: { Controller } = {
+	require(Controllers.BrainrotAnimator) :: Controller,
 	require(Controllers.UIController) :: Controller,
 }
 

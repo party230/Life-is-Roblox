@@ -86,3 +86,78 @@ house. Rogue ones get red eyes and a purple aura.
 
 **D19. HUD button budget (max 6).** Day: Shop, Eggs, Base, Trade, Store, Menu. Night: Shop, Defend, Base,
 Store, Menu, BONK. Roblox's own controls aren't counted.
+
+## Direction change (after Phase 1): real 3D Roblox game + meme roster
+
+Requested by the owner. Each item below overrides the noted part of SPEC.md or an earlier decision.
+
+**D20. Presentation: a normal 3D Roblox experience** (overrides the isometric look of the Phase 1 mockups).
+Players are their own R15 avatars with default controls, animations and camera (free orbit, zoom-out cap
+kept from Q2). The world is classic Roblox: studded Plastic surfaces, bright saturated blocks, Future
+lighting with a sky, atmosphere, bloom and sun rays (set in `default.project.json`, since scripts can't set
+`Lighting.Technology`). The mockups stay the reference for HUD/screen layouts only
+(`assets/mockups/README.md`).
+
+**D21. Character roster: 50 Italian-brainrot meme characters** (overrides SPEC §2's "original designs only"
+IP rule; replaces D14/D16). Each is modelled to look like its well-known meme version. Legal rails, per the
+owner's §6:
+- Names, rarities and model keys live only in `Config/Species.luau`. Logic and saves use stable snake_case
+  ids, so a character can be renamed or swapped in one place.
+- A `disabled` flag (per row, or the `DISABLED` set) removes a character from carpets, eggs and drops.
+  Owned copies resolve to a per-rarity "Mystery" placeholder at runtime (`Logic/Catalog.resolve`), keep
+  their rarity's income, and come back if re-enabled. Saves are never rewritten.
+- `LEGAL_REVIEW.md` lists all 50, and Phase 10 has a review item. Models avoid real-world brand marks.
+
+**D22. Variants replace mutations**: Normal ×1, Gold ×1.5, Diamond ×2, Rainbow ×4, Dark ×6 (odds and
+multipliers in `Config/Variants.luau`; carpet price scales with the variant too). Tiny/Mega are gone.
+Saves migrate v1 → v2 (`mutation` → `variant`: Golden→Gold, Rainbow→Rainbow, others→Normal). Old
+original-species ids resolve to placeholders, nothing lost.
+
+**D23. Rogue must not look like Dark.** Dark = recoloured (black/purple palette), glowing red eyes, smoke,
+a slow leaning idle. Rogue (Phase 4) = violent shaking + an angry icon on the nameplate + a red outline,
+with **no colour change**. The shake is already in the client animator, keyed off the `Rogue` attribute.
+
+**D24. Buying is physical: the red carpet.** Each base has a spawn portal at the back. A brainrot steps
+out every `CARPET_SPAWN_SECONDS` and walks the carpet over `CARPET_WALK_SECONDS` with its price on the
+nameplate. Buy it with its ProximityPrompt and it walks to your first free pedestal. Unbought ones vanish
+at the end. This replaces the rotating 5-item belt. The Shop panel stays as a list of what's on your
+carpet right now (same buy action). Carpets stop at night (Q1).
+
+**D25. Part-based rigged models** (first pass; mesh pipeline proposed in `docs/MESH_PIPELINE.md`, decision
+pending). Every model follows one rig (`World/Models/Kit.luau`):
+- an anchored invisible Root (PrimaryPart) with Nameplate/Vfx/Trail attachments
+- a Motor6D `Anim` to the Body
+- everything else welded to the Body; propellers get their own Motor6D
+
+The server moves only the anchored Root (TweenService), so replication is one CFrame per brainrot. All
+idle/walk motion, propeller spin, rainbow hue cycling and the trail run client-side by driving
+`Motor6D.Transform` (`BrainrotAnimator`). Phase 10 note: move carpet walking client-side too if many
+carpets run at once.
+
+**D26. Vertical slice mode** (`Config.Game.VERTICAL_SLICE = true`):
+- builds one plot plus the plaza and stall
+- auto-claims the plot on join (no picker)
+- freezes the cycle at midday
+- spawns only modelled characters (`REQUIRE_BUILT_MODELS`), with boosted variant odds so every variant
+  shows up quickly
+
+Flip both flags off after approval.
+
+**D27. Studio uses its own DataStore** (`PlayerData_studio_v1`) and tops cash up to `STUDIO_DEV_CASH`, so
+playtesting can buy Mythics without touching live data.
+
+**D28. Day/Night dev toggle**: Studio-only `DevSetPhase` remote (ignored on live servers), on the **N** key
+or a small dev button. It switches the server phase, so lighting replicates and night closures actually
+apply.
+
+**D29. Headless model preview** (`tools/preview`): Lune builds every character with `@lune/roblox` and a
+tiny software renderer draws contact sheets (`assets/previews/`). This catches builder errors and bad
+silhouettes without Studio. It also found that Lune's `CFrame.lookAt` disagrees with Roblox, so limbs use
+an explicit basis (`CFrame.fromMatrix`) that's correct in both.
+
+**D30. Plaza Egg Stall** is the first physical shop: a ProximityPrompt with attribute `Opens = "Eggs"`
+opens the Eggs screen. Future stalls use the same attribute.
+
+**D31. Phase 2 work done ahead of the change** (server economy, income/collection, offline income, eggs,
+plaza drop, HUD/shop UI) is kept and powers the slice. Phase 2 itself resumes only after the slice is
+approved.

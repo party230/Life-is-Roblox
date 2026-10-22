@@ -6,7 +6,28 @@ export type Step = (data: { [string]: any }) -> ()
 
 local Migrations = {}
 
-Migrations.steps = {} :: { Step }
+-- Variant rename for the old Phase 0/1 mutations (D22).
+local MUTATION_TO_VARIANT: { [string]: string } = {
+	None = "Normal",
+	Golden = "Gold",
+	Glitched = "Normal",
+	Rainbow = "Rainbow",
+	Tiny = "Normal",
+	Mega = "Normal",
+}
+
+Migrations.steps = {
+	-- 1 -> 2: brainrot.mutation -> brainrot.variant. Old original-species ids are kept as-is: they resolve to
+	-- their rarity's placeholder at runtime (same path as a disabled character), so nothing is lost.
+	function(data: { [string]: any })
+		for _, b in data.brainrots or {} do
+			if b.variant == nil then
+				b.variant = MUTATION_TO_VARIANT[b.mutation or "None"] or "Normal"
+			end
+			b.mutation = nil
+		end
+	end,
+} :: { Step }
 
 -- Runs every step from data.version up to target. Returns false (and leaves the save untouched by later
 -- steps) if the save is from a newer build than this server knows about.

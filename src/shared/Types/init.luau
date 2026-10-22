@@ -3,15 +3,15 @@
 -- or mixed/sparse arrays. Bump PlayerData.version and add a migration when changing a saved shape.
 
 export type RarityId = "Common" | "Uncommon" | "Rare" | "Epic" | "Legendary" | "Mythic" | "Secret"
-export type MutationId = "None" | "Golden" | "Glitched" | "Rainbow" | "Tiny" | "Mega"
+export type VariantId = "Normal" | "Gold" | "Diamond" | "Rainbow" | "Dark"
 export type CyclePhase = "Day" | "Dusk" | "Night" | "DawnVote"
 
 export type Brainrot = {
 	id: string, -- GUID
-	speciesId: string,
-	rarity: RarityId,
-	mutation: MutationId,
-	incomePerSec: number, -- cached from species/rarity/mutation at creation; recomputed on balance changes
+	speciesId: string, -- stable id from Config/Species (may later be disabled: shown as its rarity's placeholder)
+	rarity: RarityId, -- stored so a disabled/removed character still resolves to the right placeholder
+	variant: VariantId,
+	incomePerSec: number, -- cached from species/rarity/variant; recomputed on load
 	ownerUserId: number,
 	originalOwnerUserId: number?, -- set when stolen
 	loyalty: number, -- 0..LOYALTY_MAX toward current owner
@@ -70,9 +70,9 @@ export type PlayerData = {
 -- Client-visible subset sent over the network.
 export type PublicBrainrot = {
 	id: string,
-	speciesId: string,
+	speciesId: string, -- already resolved (placeholder id if disabled)
 	rarity: RarityId,
-	mutation: MutationId,
+	variant: VariantId,
 	incomePerSec: number,
 	loyalty: number,
 	isStolen: boolean,
@@ -88,6 +88,7 @@ export type PublicEgg = {
 export type PublicListing = {
 	id: string,
 	speciesId: string,
+	variant: VariantId,
 	rarity: RarityId,
 	price: number,
 	incomePerSec: number,

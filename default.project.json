@@ -28,6 +28,44 @@
           "$path": "src/client"
         }
       }
+    },
+    "Lighting": {
+      "$properties": {
+        "Technology": "Future",
+        "Brightness": 3,
+        "ClockTime": 14.5,
+        "GlobalShadows": true,
+        "EnvironmentDiffuseScale": 1,
+        "EnvironmentSpecularScale": 1,
+        "ShadowSoftness": 0.2
+      },
+      "Sky": {
+        "$className": "Sky"
+      },
+      "Atmosphere": {
+        "$className": "Atmosphere",
+        "$properties": {
+          "Density": 0.25,
+          "Offset": 0.1,
+          "Haze": 0.6,
+          "Glare": 0.2
+        }
+      },
+      "Bloom": {
+        "$className": "BloomEffect",
+        "$properties": {
+          "Intensity": 0.6,
+          "Size": 24,
+          "Threshold": 1.6
+        }
+      },
+      "SunRays": {
+        "$className": "SunRaysEffect",
+        "$properties": {
+          "Intensity": 0.04,
+          "Spread": 0.6
+        }
+      }
     }
   }
 }

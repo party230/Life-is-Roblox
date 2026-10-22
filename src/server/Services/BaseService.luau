@@ -21,7 +21,7 @@ local BaseService = {
 	released = Signal.new() :: Signal.Signal<Player, PlotRefs>,
 }
 
-local refs: { PlotRefs } = {}
+local refs: { [number]: PlotRefs } = {}
 local owners: { [number]: Player } = {}
 local plotOf: { [Player]: number } = {}
 local deadlines: { [Player]: number } = {}
@@ -48,7 +48,7 @@ local function stateFor(player: Player): Remotes.PlotState
 	local names: { string } = {}
 	for i = 1, Config.Game.PLOT_COUNT do
 		local owner = owners[i]
-		ownerIds[i] = if owner then owner.UserId else 0
+		ownerIds[i] = if owner then owner.UserId else (if refs[i] then 0 else -1) -- -1 = not built
 		names[i] = if owner then owner.DisplayName else ""
 	end
 	return {
@@ -76,7 +76,7 @@ local function spawnAtPlot(player: Player)
 end
 
 local function assign(player: Player, index: number): boolean
-	if owners[index] or plotOf[player] or player.Parent ~= Players then
+	if not refs[index] or owners[index] or plotOf[player] or player.Parent ~= Players then
 		return false
 	end
 	owners[index] = player
@@ -104,7 +104,7 @@ local function autoAssign(player: Player)
 	end
 	local fallback: number? = nil
 	for i = 1, Config.Game.PLOT_COUNT do
-		if not owners[i] then
+		if refs[i] and not owners[i] then
 			fallback = fallback or i
 			local left, right = Plots.neighbours(i)
 			for _, n in { left, right } do
@@ -120,7 +120,15 @@ local function autoAssign(player: Player)
 		assign(player, fallback)
 	else
 		-- Server is full of plots (shouldn't happen with MaxPlayers = PLOT_COUNT).
-		player:Kick("This server has no free bases. Please try another server.")
+		if Config.Game.VERTICAL_SLICE then
+			Remotes.Notify:fireClient(
+				player,
+				"warn",
+				"The vertical slice has one base and it's taken. You can still explore!"
+			)
+		else
+			player:Kick("This server has no free bases. Please try another server.")
+		end
 	end
 end
 
@@ -162,6 +170,11 @@ function BaseService.start()
 	end
 
 	DataService.loaded:connect(function(player)
+		if Config.Game.VERTICAL_SLICE then
+			-- one base, no picker: claim it straight away
+			autoAssign(player)
+			return
+		end
 		deadlines[player] = workspace:GetServerTimeNow() + Config.Game.PLOT_PICK_SECONDS
 		task.delay(Config.Game.PLOT_PICK_SECONDS, function()
 			if player.Parent == Players then

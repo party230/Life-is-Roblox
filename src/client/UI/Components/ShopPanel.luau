@@ -86,7 +86,8 @@ local function Card(scope: Scope, store: Store.Store, listing: Types.PublicListi
 				Preview(
 					scope,
 					listing.speciesId,
-					"None",
+					listing.rarity,
+					listing.variant,
 					Vector2.new(162, 132),
 					not Fusion.peek(store.shopOpen)
 				),

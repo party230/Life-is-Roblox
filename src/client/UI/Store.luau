@@ -31,6 +31,8 @@ export type Store = {
 	plot: V<Remotes.PlotState?>,
 	toast: V<Toast?>,
 	shopVisible: V<boolean>,
+	eggsVisible: V<boolean>,
+	pushToast: (kind: Remotes.NotifyKind, text: string) -> (),
 }
 
 local Store = {}
@@ -56,6 +58,8 @@ function Store.new(scope: Scope): Store
 		plot = scope:Value(nil :: Remotes.PlotState?) :: any,
 		toast = scope:Value(nil :: Toast?) :: any,
 		shopVisible = scope:Value(false) :: any,
+		eggsVisible = scope:Value(false) :: any,
+		pushToast = function() end,
 	}
 
 	table.insert(
@@ -132,17 +136,15 @@ function Store.new(scope: Scope): Store
 			pump()
 		end)
 	end
-	table.insert(
-		scope,
-		Remotes.Notify:connect(function(kind, text)
-			serial += 1
-			table.insert(queue, { id = serial, kind = kind, text = text })
-			if #queue > 4 then
-				table.remove(queue, 1)
-			end
-			pump()
-		end)
-	)
+	store.pushToast = function(kind, text)
+		serial += 1
+		table.insert(queue, { id = serial, kind = kind, text = text })
+		if #queue > 4 then
+			table.remove(queue, 1)
+		end
+		pump()
+	end
+	table.insert(scope, Remotes.Notify:connect(store.pushToast))
 
 	local acc = 0
 	table.insert(

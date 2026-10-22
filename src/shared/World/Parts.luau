@@ -12,6 +12,7 @@ export type PartProps = {
 	shape: Enum.PartType?,
 	transparency: number?,
 	canCollide: boolean?,
+	studs: boolean?, -- classic studded top surface (Plastic)
 	parent: Instance?,
 }
 
@@ -26,9 +27,10 @@ function Parts.part(props: PartProps): Part
 	p.Size = props.size
 	p.CFrame = props.cframe
 	p.Color = Parts.color(props.color)
-	p.Material = props.material or Enum.Material.SmoothPlastic
-	p.TopSurface = Enum.SurfaceType.Smooth
-	p.BottomSurface = Enum.SurfaceType.Smooth
+	p.Material = props.material
+		or (if props.studs then Enum.Material.Plastic else Enum.Material.SmoothPlastic)
+	p.TopSurface = if props.studs then Enum.SurfaceType.Studs else Enum.SurfaceType.Smooth
+	p.BottomSurface = if props.studs then Enum.SurfaceType.Inlet else Enum.SurfaceType.Smooth
 	p.Transparency = props.transparency or 0
 	p.CanCollide = if props.canCollide == nil then true else props.canCollide
 	if props.shape then

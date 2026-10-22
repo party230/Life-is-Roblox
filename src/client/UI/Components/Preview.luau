@@ -3,7 +3,8 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local BrainrotModel = require(ReplicatedStorage.Shared.World.BrainrotModel)
+local Models = require(ReplicatedStorage.Shared.World.Models)
+local Variants = require(ReplicatedStorage.Shared.World.Variants)
 local Fusion = require(ReplicatedStorage.Packages.Fusion)
 
 type Scope = Fusion.Scope<typeof(Fusion)>
@@ -11,19 +12,20 @@ type Scope = Fusion.Scope<typeof(Fusion)>
 local function Preview(
 	scope: Scope,
 	speciesId: string,
-	mutation: string,
+	rarity: string,
+	variant: string,
 	size: Vector2,
 	sleepy: boolean?
 ): Instance
-	local model = BrainrotModel.build(speciesId, mutation, { showIncome = false })
-	local label = model:FindFirstChild("Label", true)
-	if label then
-		label:Destroy()
-	end
+	local model = Models.build(speciesId, rarity)
+	Variants.apply(model, variant)
 	model:PivotTo(CFrame.Angles(0, math.rad(200), 0))
+	-- frame the model from its bounding box
+	local _, extents = model:GetBoundingBox()
+	local h = math.max(extents.Y, extents.X * 0.7, extents.Z * 0.5)
 	local camera = Instance.new("Camera")
 	camera.FieldOfView = 30
-	camera.CFrame = CFrame.lookAt(Vector3.new(0, 2.6, -11), Vector3.new(0, 1.6, 0))
+	camera.CFrame = CFrame.lookAt(Vector3.new(0, h * 0.62, -h * 2.6), Vector3.new(0, h * 0.48, 0))
 	table.insert(scope, model)
 	table.insert(scope, camera)
 	local viewport = scope:New("ViewportFrame")({

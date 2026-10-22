@@ -84,23 +84,19 @@ function Validate.run(config: any): Result
 		end
 	end
 
-	-- Mutations
-	local mutationWeights: { [string]: number } = {}
-	local hasNone = false
-	for _, m in config.Mutations.list do
-		mutationWeights[m.id] = m.weight
-		if m.id == "None" then
-			hasNone = true
-		end
-		if m.incomeMult <= 0 or m.scale <= 0 or m.carrySpeedMult <= 0 then
-			err(`mutation {m.id} has invalid numbers`)
+	-- Variants
+	local variantWeights: { [string]: number } = {}
+	for _, v in config.Variants.list do
+		variantWeights[v.id] = v.weight
+		if v.incomeMult <= 0 or v.priceMult <= 0 or v.weight < 0 then
+			err(`variant {v.id} has invalid numbers`)
 		end
 	end
-	if not hasNone then
-		err("mutations must include None")
+	if not config.Variants.byId.Normal then
+		err("variants must include Normal")
 	end
-	if sumWeights(mutationWeights) <= 0 then
-		err("mutation weights sum to zero")
+	if sumWeights(variantWeights) <= 0 then
+		err("variant weights sum to zero")
 	end
 
 	-- Species
@@ -116,32 +112,40 @@ function Validate.run(config: any): Result
 		if not rarityIds[s.rarity] then
 			err(`species {s.id} has unknown rarity {s.rarity}`)
 		end
-		rarityHasSpecies[s.rarity] = true
+		if not s.disabled then
+			rarityHasSpecies[s.rarity] = true
+		end
+		if s.reference ~= `assets/reference/{s.id}.png` then
+			err(`species {s.id} reference path should be assets/reference/{s.id}.png`)
+		end
+		if not string.match(s.id, "^[a-z0-9_]+$") then
+			err(`species id {s.id} must be lowercase snake_case`)
+		end
 		if s.incomeFactor <= 0 then
 			err(`species {s.id} incomeFactor must be positive`)
 		end
 	end
-	if speciesCount < 12 then
-		err(`expected at least 12 species, found {speciesCount}`)
+	if speciesCount < 1 then
+		err("no species configured")
+	end
+	for _, r in config.Rarities.list do
+		if not config.Species.placeholders[r.id] then
+			err(`missing placeholder for rarity {r.id}`)
+		end
 	end
 
 	-- Any rarity that can be rolled must have at least one species.
 	local function checkRollable(where: string, weights: { [string]: number })
 		for id, w in weights do
 			if w > 0 and not rarityHasSpecies[id] then
-				err(`{where}: rarity {id} can roll but has no species`)
+				table.insert(
+					warnings,
+					`{where}: rarity {id} can roll but has no enabled species (placeholder used)`
+				)
 			end
 		end
 	end
 
-	for _, sp in config.Species.list do
-		for _, field in { "color", "accent" } do
-			local hex = sp[field]
-			if type(hex) ~= "string" or not string.match(hex, "^#%x%x%x%x%x%x$") then
-				err(`species {sp.id} has an invalid {field} colour`)
-			end
-		end
-	end
 	checkRarityWeights("Shop.PLAZA_DROP_RARITY_WEIGHTS", config.Shop.PLAZA_DROP_RARITY_WEIGHTS)
 	checkRollable("Shop.PLAZA_DROP_RARITY_WEIGHTS", config.Shop.PLAZA_DROP_RARITY_WEIGHTS)
 	if #config.Layout.SLOTS ~= g.MAX_SLOTS then

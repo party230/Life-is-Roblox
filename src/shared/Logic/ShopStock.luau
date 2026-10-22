@@ -1,5 +1,5 @@
 --!strict
--- Conveyor belt stock. Belt items carry no mutation (mutations come from eggs) so prices stay predictable.
+-- What walks out onto the red carpet (and the plaza drop). One listing per brainrot on the carpet.
 
 local Config = require("../Config")
 local Income = require("./Income")
@@ -8,6 +8,7 @@ local Roll = require("./Roll")
 export type Listing = {
 	id: string,
 	speciesId: string,
+	variant: string, -- Types.VariantId
 	rarity: string, -- Types.RarityId
 	price: number,
 	incomePerSec: number,
@@ -29,50 +30,52 @@ function ShopStock.nicePrice(n: number): number
 	return math.max(step, math.floor(n / step + 0.5) * step)
 end
 
-function ShopStock.priceFor(rarity: string, rng: Roll.Rng, mult: number?): number
+function ShopStock.priceFor(rarity: string, variant: string, rng: Roll.Rng, mult: number?): number
 	local base = Config.Rarities.byId[rarity].shopPrice * (mult or 1)
+	local v = Config.Variants.byId[variant] or Config.Variants.byId.Normal
 	local jitter = (rng() * 2 - 1) * Config.Shop.PRICE_JITTER
-	return ShopStock.nicePrice(base * (1 + jitter))
+	return ShopStock.nicePrice(base * v.priceMult * (1 + jitter))
 end
 
--- `idPrefix` keeps listing ids unique across rotations (e.g. the rotation number).
-function ShopStock.generate(rng: Roll.Rng, idPrefix: string, luck: number?): { Listing }
-	local out: { Listing } = {}
-	for i = 1, Config.Shop.STOCK_SIZE do
-		local rarity: string = Roll.rarity(Config.Shop.RARITY_WEIGHTS, rng, luck) or "Common"
-		local speciesId = Roll.species(rarity, rng)
-		if speciesId then
-			table.insert(out, {
-				id = `{idPrefix}-{i}`,
-				speciesId = speciesId,
-				rarity = rarity,
-				price = ShopStock.priceFor(rarity, rng),
-				incomePerSec = Income.perSec(speciesId, "None"),
-				sold = false,
-			})
-		end
-	end
-	return out
-end
-
-function ShopStock.plazaDrop(rng: Roll.Rng, id: string): Listing?
-	local rolled = Roll.rarity(Config.Shop.PLAZA_DROP_RARITY_WEIGHTS, rng)
-	if not rolled then
-		return nil
-	end
-	local rarity: string = rolled
-	local speciesId = Roll.species(rarity, rng)
-	if not speciesId then
-		return nil
-	end
+local function make(id: string, speciesId: string, variant: string, rng: Roll.Rng, mult: number?): Listing
+	local rarity = Config.Species.byId[speciesId].rarity
 	return {
 		id = id,
 		speciesId = speciesId,
+		variant = variant,
 		rarity = rarity,
-		price = ShopStock.priceFor(rarity, rng, Config.Shop.PLAZA_DROP_PRICE_MULT),
-		incomePerSec = Income.perSec(speciesId, "None"),
+		price = ShopStock.priceFor(rarity, variant, rng, mult),
+		incomePerSec = Income.perSec(speciesId, variant, rarity),
 		sold = false,
 	}
+end
+
+-- Next brainrot for a carpet. In the vertical slice every modelled character is equally likely and
+-- variants use boosted showcase odds.
+function ShopStock.carpetListing(rng: Roll.Rng, id: string, luck: number?): Listing?
+	local speciesId: string?
+	local variant
+	if Config.Game.VERTICAL_SLICE then
+		speciesId = Roll.anySpecies(rng)
+		variant = Roll.variant(rng, Config.Variants.SLICE_WEIGHTS)
+	else
+		local rarity = Roll.rarity(Config.Shop.RARITY_WEIGHTS, rng, luck)
+		speciesId = rarity and Roll.species(rarity, rng)
+		variant = Roll.variant(rng)
+	end
+	if not speciesId then
+		return nil
+	end
+	return make(id, speciesId, variant, rng)
+end
+
+function ShopStock.plazaDrop(rng: Roll.Rng, id: string): Listing?
+	local rarity = Roll.rarity(Config.Shop.PLAZA_DROP_RARITY_WEIGHTS, rng)
+	local speciesId = rarity and Roll.species(rarity, rng)
+	if not speciesId then
+		return nil
+	end
+	return make(id, speciesId, Roll.variant(rng), rng, Config.Shop.PLAZA_DROP_PRICE_MULT)
 end
 
 return ShopStock

@@ -1,5 +1,26 @@
 # Changelog
 
+## Vertical slice (Phase 1 redo, awaiting feedback)
+
+- Direction change logged (DECISIONS D20–D31): real 3D Roblox presentation, a 50-character meme roster,
+  variants, the red carpet conveyor.
+- `Config/Species.luau`: all 50 characters with stable ids, rarities, model keys, reference paths and
+  `disabled` support. `Config/Variants.luau` replaces mutations. Save migration v1 → v2.
+- `Logic/Catalog.luau`: name/disable resolution with per-rarity placeholders; only spawnable characters roll.
+- Part-based rigged models for Tralalero Tralala, Tung Tung Tung Sahur, Bombardiro Crocodilo, Ballerina
+  Cappuccina and Brr Brr Patapim, plus the Mystery placeholder. All 5 variants with effects. Nameplates:
+  variant / name / rarity / $/s / price.
+- Client `BrainrotAnimator`: bob/sway/fly/twirl idles, walking waddle, propellers, rainbow cycling + trail,
+  Dark idle, Rogue shake hook.
+- World rebuilt in classic Roblox style: studded baseplate, a base with spawn portal + red carpet +
+  round pedestals + collector + escape lane, and the plaza with the Egg Stall and merchant. Future
+  lighting, sky, atmosphere, bloom.
+- Carpet shop: spawn, walk, buy by prompt, walk to a pedestal. Eggs screen (Fusion) opened from the stall.
+  Day HUD with all 6 buttons, night HUD with BONK. Studio Day/Night toggle (N).
+- Headless preview tool (`tools/preview`) with contact sheets in `assets/previews/`.
+- `LEGAL_REVIEW.md`, `docs/MESH_PIPELINE.md` (proposal, awaiting decision), `docs/SLICE_REVIEW.md`
+  (Studio steps + screenshot checklist).
+
 ## Phase 1: Mockups (awaiting feedback)
 
 - 13 PNGs in `assets/mockups/`: HUD, conveyor shop, inspect panel, base layout, map overview and the

@@ -62,6 +62,12 @@ local Remotes = {
 	BuyPlazaDrop = Net.clientEvent("BuyPlazaDrop", Guard.args(listingId), { burst = 3, perSecond = 2 }) :: Net.ClientEvent<string>,
 	BuyEgg = Net.clientEvent("BuyEgg", Guard.args(eggId), { burst = 3, perSecond = 1 }) :: Net.ClientEvent<string>,
 	HatchEgg = Net.clientEvent("HatchEgg", Guard.args(Guard.guid), { burst = 3, perSecond = 2 }) :: Net.ClientEvent<string>,
+	-- Studio only (ignored on live servers): force Day or Night lighting/state for the vertical slice.
+	DevSetPhase = Net.clientEvent(
+		"DevSetPhase",
+		Guard.args(Guard.literal("Day", "Night")),
+		{ burst = 2, perSecond = 1 }
+	) :: Net.ClientEvent<string>,
 
 	-- Server -> client
 	DataSnapshot = Net.serverEvent("DataSnapshot") :: Net.ServerEvent<DataSnapshot>,

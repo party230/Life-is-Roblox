@@ -193,24 +193,98 @@ function Hud.CycleTimer(scope: Scope, store: Store.Store): Instance
 	})
 end
 
--- Side buttons. Only screens that exist are shown; the rest arrive with their phases
--- (Eggs/Base/Trade/Store/Menu by day; Defend + BONK at night), staying within the 6-button budget.
+-- HUD buttons (approved HUD-2, max 6). Day: Shop, Eggs, Base (left) + Trade, Store, Menu (top-right).
+-- Night: Defend, Base (left) + Store, Menu (top-right) + a big BONK button. Screens that don't exist yet
+-- say which phase brings them.
 function Hud.Buttons(scope: Scope, store: Store.Store): Instance
+	local isDay = scope:Computed(function(use)
+		local p = use(store.phase)
+		return p == "Day" or p == "Dusk"
+	end)
+	local isNight = scope:Computed(function(use)
+		return not use(isDay)
+	end)
+	local function soon(what: string, phase: number): () -> ()
+		return function()
+			store.pushToast("info", `{what} arrives in Phase {phase}.`)
+		end
+	end
+	local function side(
+		index: number,
+		color: Color3,
+		icon: string,
+		caption: string,
+		visible: any,
+		onClick: () -> ()
+	): Instance
+		return Button(scope, {
+			size = Vector2.new(84, 84),
+			position = UDim2.fromOffset(0, (index - 1) * 122),
+			color = color,
+			icon = icon,
+			caption = caption,
+			visible = visible,
+			onClick = onClick,
+		})
+	end
+	local function top(
+		slot: number,
+		color: Color3,
+		icon: string,
+		caption: string,
+		visible: any,
+		onClick: () -> ()
+	): Instance
+		return Button(scope, {
+			size = Vector2.new(84, 84),
+			anchor = Vector2.new(1, 0),
+			position = UDim2.new(1, -22 - (slot - 1) * 104, 0, 18),
+			color = color,
+			icon = icon,
+			caption = caption,
+			visible = visible,
+			onClick = onClick,
+		})
+	end
 	return scope:New("Frame")({
-		Name = "SideButtons",
+		Name = "Buttons",
 		BackgroundTransparency = 1,
-		Position = UDim2.fromOffset(22, 158),
-		Size = UDim2.fromOffset(84, 380),
+		Size = UDim2.fromScale(1, 1),
 		[Fusion.Children] = {
+			scope:New("Frame")({
+				Name = "Left",
+				BackgroundTransparency = 1,
+				Position = UDim2.fromOffset(22, 158),
+				Size = UDim2.fromOffset(84, 380),
+				[Fusion.Children] = {
+					-- day
+					side(1, Theme.pink, "🛒", "Shop", isDay, function()
+						store.shopVisible:set(not Fusion.peek(store.shopVisible))
+					end),
+					side(2, Theme.yellow, "🥚", "Eggs", isDay, function()
+						store.eggsVisible:set(not Fusion.peek(store.eggsVisible))
+					end),
+					side(3, Theme.orange, "🏠", "Base", isDay, soon("Base management", 4)),
+					-- night
+					side(1, Theme.blue, "🛡", "Defend", isNight, soon("Defences", 5)),
+					side(2, Theme.orange, "🏠", "Base", isNight, soon("Base management", 4)),
+				},
+			}),
+			-- top-right (slot 1 is the rightmost)
+			top(3, Theme.blue, "⇄", "Trade", isDay, soon("Trading", 7)),
+			top(2, Theme.green, "R$", "Store", true, soon("The Robux store", 8)),
+			top(1, Theme.purple, "☰", "Menu", true, soon("Settings", 10)),
+			-- BONK at night, left of the jump button
 			Button(scope, {
-				size = Vector2.new(84, 84),
+				size = Vector2.new(140, 140),
+				anchor = Vector2.new(1, 1),
+				position = UDim2.new(1, -230, 1, -40),
 				color = Theme.pink,
-				icon = "🛒",
-				caption = "Shop",
-				visible = store.shopOpen,
-				onClick = function()
-					store.shopVisible:set(not Fusion.peek(store.shopVisible))
-				end,
+				icon = "🔨",
+				iconSize = 54,
+				caption = "BONK",
+				visible = isNight,
+				onClick = soon("Bonking", 3),
 			}),
 		},
 	})

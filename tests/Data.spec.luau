@@ -28,6 +28,23 @@ describe("Data template", function()
 	end)
 end)
 
+describe("Migration 1 -> 2 (mutation -> variant)", function()
+	it("renames mutation to variant and keeps old species ids", function()
+		local data: { [string]: any } = {
+			version = 1,
+			brainrots = {
+				a = { id = "a", speciesId = "mugpup", rarity = "Common", mutation = "Golden" },
+				b = { id = "b", speciesId = "fridgehog", rarity = "Rare", mutation = "Mega" },
+			},
+		}
+		expect((Migrations.run(data, 2))).to.equal(true)
+		expect(data.brainrots.a.variant).to.equal("Gold")
+		expect(data.brainrots.a.mutation).to.equal(nil)
+		expect(data.brainrots.b.variant).to.equal("Normal")
+		expect(data.brainrots.b.speciesId).to.equal("fridgehog")
+	end)
+end)
+
 describe("Migrations.run", function()
 	local steps = {
 		function(data: { [string]: any })

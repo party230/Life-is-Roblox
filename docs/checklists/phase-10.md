@@ -3,9 +3,10 @@
 Items get added here as they come up in earlier phases.
 
 ## Legal / IP
-- [ ] Trademark and store-name check for all 12 species names (Mugpup, Toasturtle, Sockodile, Lampingo,
-      Brollybun, Fridgehog, Kettlephant, Cartshark, Owlarm, Pianoceros, Spinwhale, Tellama): Roblox
-      marketplace, app stores, toy/game trademark databases. Rename any that collide.
+- [ ] Legal review of every character in LEGAL_REVIEW.md (all 50) before publishing: trademark/copyright
+      status and store-name collisions. Disable (Config/Species `disabled`) or rename anything not cleared.
+      Tung Tung Tung Sahur flagged by the owner as under active dispute.
+- [ ] Confirm no real-world brand marks or insignia on any model or texture.
 - [ ] Experience Guidelines / maturity questionnaire filled in honestly (mild cartoon bonking, no gore).
 
 ## Balance
