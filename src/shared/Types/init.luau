@@ -76,6 +76,22 @@ export type PublicBrainrot = {
 	incomePerSec: number,
 	loyalty: number,
 	isStolen: boolean,
+	slot: number?, -- pedestal slot, nil = in storage
+}
+
+export type PublicEgg = {
+	id: string,
+	eggId: string,
+	readyAt: number, -- unix seconds (os.time)
+}
+
+export type PublicListing = {
+	id: string,
+	speciesId: string,
+	rarity: RarityId,
+	price: number,
+	incomePerSec: number,
+	sold: boolean,
 }
 
 return {}

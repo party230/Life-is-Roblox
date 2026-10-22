@@ -21,7 +21,8 @@ jobs:
       - name: Dump Fusion API (temporary, for development)
         run: |
           find Packages -type f | sort
-          f=$(find Packages/_Index -path '*fusion*' -name 'Types.luau' | head -1)
+          cat Packages/Fusion.lua
+          f=$(find Packages/_Index -path '*fusion*' -name 'init.luau' -path '*fusion/src/init.luau' | head -1)
           echo "=== $f"; cat "$f"
       - name: Lint + type-check + test
         run: scripts/check.sh

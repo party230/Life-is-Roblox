@@ -5,12 +5,15 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage.Shared
-local Config = require(Shared.Config)
+local Income = require(Shared.Logic.Income)
 local Migrations = require(Shared.Data.Migrations)
 local Remotes = require(Shared.Remotes)
 local Signal = require(Shared.Util.Signal)
+local Slots = require(Shared.Logic.Slots)
 local Template = require(Shared.Data.Template)
 local Types = require(Shared.Types)
+
+local Entitlements = require(script.Parent.Parent.Entitlements)
 
 local ProfileStore = require(script.Parent.Parent.Vendor.ProfileStore)
 
@@ -37,12 +40,28 @@ local DataService = {
 	loaded = Signal.new() :: Signal.Signal<Player, Types.PlayerData>,
 	-- Fired just before a player's session ends (last chance to write to their data).
 	releasing = Signal.new() :: Signal.Signal<Player, Types.PlayerData>,
+	-- Fired once both the save is loaded and the client has said it's listening (send initial state here).
+	sessionReady = Signal.new() :: Signal.Signal<Player, Types.PlayerData>,
 }
 
 local store: Store
 local profiles: { [Player]: Profile } = {}
+local clientReady: { [Player]: boolean } = {}
+local sessionFired: { [Player]: boolean } = {}
 
-local function toSnapshot(data: Types.PlayerData): Remotes.DataSnapshot
+local function trySessionReady(player: Player)
+	local profile = profiles[player]
+	if profile and clientReady[player] and not sessionFired[player] then
+		sessionFired[player] = true
+		DataService.sessionReady:fire(player, profile.Data)
+	end
+end
+
+local function toSnapshot(player: Player, data: Types.PlayerData): Remotes.DataSnapshot
+	local slotById: { [string]: number } = {}
+	for key, id in data.pedestals do
+		slotById[id] = tonumber(key) :: number
+	end
 	local brainrots: { Types.PublicBrainrot } = {}
 	for _, b in data.brainrots do
 		table.insert(brainrots, {
@@ -53,14 +72,21 @@ local function toSnapshot(data: Types.PlayerData): Remotes.DataSnapshot
 			incomePerSec = b.incomePerSec,
 			loyalty = b.loyalty,
 			isStolen = b.isStolen,
+			slot = slotById[b.id],
 		})
+	end
+	local eggs: { Types.PublicEgg } = {}
+	for _, e in data.eggs do
+		table.insert(eggs, { id = e.id, eggId = e.eggId, readyAt = e.startedAt + e.hatchSeconds })
 	end
 	return {
 		cash = data.cash,
 		uncollectedCash = data.uncollectedCash,
-		slots = Config.Game.START_SLOTS, -- pass bonuses added in Phase 8
+		incomePerSec = Income.basePerSec(data) * Entitlements.incomeMultiplier(player),
+		slotsUnlocked = Slots.unlockedCount(Entitlements.extraSlotTiers(player)),
+		storageCount = Slots.storageCount(data),
 		brainrots = brainrots,
-		pedestals = data.pedestals,
+		eggs = eggs,
 	}
 end
 
@@ -105,9 +131,12 @@ local function onPlayerAdded(player: Player)
 
 	profiles[player] = profile
 	DataService.loaded:fire(player, profile.Data)
+	trySessionReady(player)
 end
 
 local function onPlayerRemoving(player: Player)
+	clientReady[player] = nil
+	sessionFired[player] = nil
 	local profile = profiles[player]
 	if not profile then
 		return
@@ -121,6 +150,11 @@ end
 function DataService.get(player: Player): Types.PlayerData?
 	local profile = profiles[player]
 	return if profile then profile.Data else nil
+end
+
+-- True once the save is loaded and the client is listening for remotes.
+function DataService.isSessionReady(player: Player): boolean
+	return sessionFired[player] == true
 end
 
 -- Yields until the player's data is loaded; returns nil if they leave first.
@@ -146,7 +180,7 @@ end
 function DataService.sendSnapshot(player: Player)
 	local data = DataService.get(player)
 	if data then
-		Remotes.DataSnapshot:fireClient(player, toSnapshot(data))
+		Remotes.DataSnapshot:fireClient(player, toSnapshot(player, data))
 	end
 end
 
@@ -161,11 +195,12 @@ function DataService.start()
 		task.spawn(onPlayerAdded, player)
 	end
 
-	DataService.loaded:connect(function(player)
+	DataService.sessionReady:connect(function(player)
 		DataService.sendSnapshot(player)
 	end)
 	Remotes.ClientReady:connect(function(player)
-		DataService.sendSnapshot(player)
+		clientReady[player] = true
+		trySessionReady(player)
 	end)
 end
 

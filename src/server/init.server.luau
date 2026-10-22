@@ -21,12 +21,14 @@ local Services = script.Services
 -- Order matters: DataService first, everything else depends on loaded saves.
 local services: { Service } = {
 	require(Services.DataService) :: Service,
-	require(Services.BrainrotService) :: Service,
+	require(Services.CycleService) :: Service,
 	require(Services.BaseService) :: Service,
+	require(Services.BrainrotService) :: Service,
 	require(Services.EconomyService) :: Service,
+	require(Services.ShopService) :: Service,
+	require(Services.EggService) :: Service,
 	require(Services.StealService) :: Service,
 	require(Services.LoyaltyService) :: Service,
-	require(Services.CycleService) :: Service,
 	require(Services.NightService) :: Service,
 	require(Services.RotterService) :: Service,
 	require(Services.TradeService) :: Service,
