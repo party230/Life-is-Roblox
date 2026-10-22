@@ -1,5 +1,32 @@
 # Changelog
 
+## v3: bigger map, shared conveyor, food, loyalty + runaways, nursery (awaiting Studio feedback)
+
+- **Map:** 12 bases in a ring around a central hub (gate to carpet ≈ 12 s).
+  - Spokes with lamps; a meadow with trees, benches and six landmark types.
+  - Escape lanes between neighbouring bases.
+  - A nursery in every base.
+- **Shared conveyor:** one portal and carpet loop for everyone, first to buy. Rare+ banner; a featured Rare+
+  every 3 minutes of Day; runaways rejoin it.
+- **Food Shop:** 18 foods (owner's table), cash x1/x5/x10, Robux x1/x5 (10% off), a Best-for-you badge,
+  inventory, feeding from a prompt or the brainrot card.
+- **Loyalty and runaway timer:**
+  - Owner-only loyalty bar and one long timer bar on your nameplates (green → yellow 25% → red 10%).
+  - Income ×0.5–×2 from loyalty.
+  - "Leaving tonight" fidget, midnight runaways to the carpet, catch by touch or BONK.
+  - Stolen brainrots run home if still loyal.
+- **Nursery:** progress-scaled unlock or a Robux skip, incubators (3 + passes), Babies grow to Teens and
+  Adults (bigger, earning more) from food and slowly over time; move to a pedestal at any stage.
+- **Monetisation:** Nursery Unlock skip, Robux food bundles and Extra Incubator passes added; Treat Packs
+  removed; the Bond Collar now pauses the timer; idempotent receipts.
+- **Save v4:** migration with tests. New tests for the timer, the runaway/return decision, income, growth and
+  food pricing (115 tests).
+- **Fixes:**
+  - The Bonk Bat swing now works (each player's copy is hooked).
+  - Disabled labels are no longer drawn in previews.
+- **Previews:** real-code world renders in `assets/previews/world-*.png`; Studio steps and screenshot
+  checklist in `docs/SLICE_REVIEW.md`.
+
 ## v3 design round (awaiting feedback)
 
 - **Design renders** for the 12-base ring and hub map, the shared conveyor, the nursery (locked and unlocked)

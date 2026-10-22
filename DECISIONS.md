@@ -250,3 +250,46 @@ feedback. Overrides:
 - **Nameplates** are 5.6 studs wide with 0.72-stud lines and hidden beyond 60 studs. The owner's client raises
   that for their own brainrots.
 
+**D39. v3 food, loyalty, runaways, nursery, monetisation (built).** Implements D37 with the owner's answers:
+- **Robux x5 bundles** are 10% off (one dev product per bundle).
+- **Nursery unlock price scales with progress:** 300 s of the best-ever income/s (`stats.peakIncome`, so
+  removing brainrots can't make it cheaper), clamped to $25K–$5M. The Robux skip is 99 R$.
+- **Growth** also comes passively: +1 growth point per in-game hour while you're online.
+- **Nonna's Secret Recipe** makes the brainrot an Adult wherever it is, pedestal included.
+- **"Best for you"** marks the priciest cash food costing at most 600 s of your income.
+
+Implementation choices:
+- **In-game time:** 1 in-game day = one Day+Dusk+Night+Vote cycle (`Cycle.length()`, 770 s). Timers only
+  advance for players in the server. In slice mode the clock is frozen, but timers still tick in real time so
+  they can be tested. Midnight comes 4 s after switching to Night, and Studio dev buttons can expire timers or
+  trigger midnight.
+- **Leaving tonight:** a brainrot whose timer runs out fidgets; feeding it before midnight saves it. At
+  midnight it leaves its pedestal and walks out of the gate, down its spoke, to the nearest point of the carpet
+  (RUN_SPEED 14).
+  - **Caught** by the owner's touch or bat: it goes home with -10 loyalty and a 2-day timer.
+  - **Reached the carpet:** it's removed from the owner's save and becomes a carpet listing anyone can buy,
+    even at night (normal listings stop at night). The buyer gets it with the starting loyalty and a 2-day
+    timer.
+  - If the owner leaves mid-run, the run is called off and the brainrot stays theirs.
+- **Stolen-return rule:**
+  - At midnight a stolen brainrot with old loyalty ≥ 70 runs home, but only if its original owner is in the
+    server and has a base. The thief can catch it the same way.
+  - Its old loyalty fades by 10 a night (`OLD_LOYALTY_DECAY_PER_NIGHT`).
+  - The steal action itself (pickup and escape) is still Phase 3. `Loyalty.steal` is the hand-off it will call.
+- **Loyalty over time:** while fed within the last in-game day, +6 per in-game day; once neglected, −3 per day.
+  The Bond Collar pauses the timer and stops gains (not decay).
+- **Bought brainrots** are Adults (growth 140). **Hatched** ones are Babies in the pen; the pen holds 10.
+  Eggs need an unlocked nursery, and incubators are 3 + Extra Incubator passes (99/149/199 R$).
+- **The Food Shop is open at night** (feeding is how you save a leaving brainrot). Buying needs you at the
+  stall; feeding works anywhere (prompt or card).
+- **Owner privacy:** loyalty, timers and the collar only travel in the owner's own DataSnapshot / HatchResult
+  (`Data/Public`). The overlay rows are created on the owner's client inside the replicated nameplate
+  (`World/OwnerStatus`), so they never replicate. The stage line (Baby/Teen) and the fidgeting are public by
+  design.
+- **Monetisation (subset of Phase 8):**
+  - Pass ownership feeds Entitlements.
+  - ProcessReceipt is idempotent (`grantedReceipts`) and grants the Nursery Unlock skip and food bundles.
+  - Treat Packs are gone; saves turn treats into Pizza Slices (migration v3→v4).
+- **Bat:** each player's own copy is hooked (connections don't clone from the StarterPack template; the old
+  swing never ran). A swing catches your runner within 8 studs in front of you.
+

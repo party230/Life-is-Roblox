@@ -17,6 +17,8 @@ const SHOTS = [
 	{ name: "world-base-day", mode: "day", camera: [36, 56, -74], target: [0, 0, 6], labelDistance: 130 },
 	{ name: "world-base-locked-day", mode: "day", frame: "neighbourBase", camera: [36, 56, -74], target: [0, 0, 6], labelDistance: 130 },
 	{ name: "world-pedestals-day", mode: "day", camera: [-2, 12, -40], target: [0, 4, -10], fov: 62, labelDistance: 80 },
+	{ name: "world-pedestals-others-day", mode: "day", camera: [-2, 12, -40], target: [0, 4, -10], fov: 62, labelDistance: 80, hideOwner: true },
+	{ name: "world-nursery-day", mode: "day", camera: [0, 30, 4], target: [0, 0, 31], fov: 58, labelDistance: 80 },
 	{ name: "world-hub-night", mode: "night", world: true, camera: [-112, 56, 4], target: [34, 0, 0], labelDistance: 175, shadowRadius: 140, maxLights: 14 },
 ];
 

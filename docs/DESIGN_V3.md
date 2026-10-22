@@ -1,7 +1,7 @@
-# v3 update: design proposal (awaiting owner feedback)
+# v3 update: design (approved, built; see D38/D39)
 
 Scope (from the owner's update): a bigger map with 12 bases round a central hub, a shared conveyor, nursery +
-loyalty, and a food shop. Nothing here is implemented yet. After feedback, the work goes in this order: map →
+loyalty, and a food shop. Approved with the owner's answers (DECISIONS D39) and built. After feedback, the work goes in this order: map →
 shared conveyor → food shop → loyalty/runaway → nursery/growth → stolen-return rule → monetisation.
 
 Renders: `assets/mockups/v3/`. In-world shots come from `tools/preview/design/map.luau`, which uses the real
@@ -84,13 +84,11 @@ Every value is as given by the owner; the full table will live in `Config/Food.l
 - **Added:** dev products for foods 10–18 (one per price and bundle), Nursery Unlock skip, incubator passes.
 - Nothing purchasable stops stealing, reveals other players' loyalty or guarantees a catch.
 
-## Open questions
+## Owner answers (applied, D39)
 
-1. Robux ×5 bundles: exactly 5× the price, or a small discount?
-2. Nursery unlock: is a flat $250K right, or should it scale with progress?
-3. Growth: food only, or also a slow passive trickle?
-4. Nonna's Secret Recipe on a brainrot already on a pedestal: does it just become an Adult there?
-5. A "best for your income" highlight in the Food Shop?
-6. Balance note: at current incomes a Common earns ~$770 per in-game day, so even the cheapest foods cost
-   more than a Common earns. That makes food worth it mainly on Rare+ brainrots. The prices stay as given (the
-   owner asked to keep this scale). Flagging it in case low-rarity brainrots should simply be allowed to run away.
+1. Robux x5 bundles: a small discount (10% off).
+2. Nursery unlock: scales with progress (300 s of best-ever income, $25K-$5M).
+3. Growth: food, and slowly over time as well (+1 point per in-game hour online).
+4. Nonna's Secret Recipe on a pedestal brainrot: yes, it becomes an Adult there.
+5. "Best for you" highlight in the Food Shop: yes.
+6. Timer overlay: one long bar with no text, green -> yellow at 25% -> red at 10% (owner feedback on the mockup).

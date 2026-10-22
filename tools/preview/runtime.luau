@@ -356,7 +356,7 @@ function Runtime.dump(extra)
 					studs = d.TopSurface == Enum.SurfaceType.Studs,
 				})
 			end
-		elseif d:IsA("BillboardGui") then
+		elseif d:IsA("BillboardGui") and d.Enabled then
 			local adornee = d.Adornee or d.Parent
 			local pos = worldPos(adornee)
 			if pos then
@@ -370,7 +370,7 @@ function Runtime.dump(extra)
 					lines = labels(d),
 				})
 			end
-		elseif d:IsA("SurfaceGui") then
+		elseif d:IsA("SurfaceGui") and d.Enabled then
 			local part = d.Adornee or d.Parent
 			if part:IsA("BasePart") then
 				table.insert(surfaces, {

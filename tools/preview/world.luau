@@ -78,33 +78,73 @@ for i, entry in carpet do
 	model.Parent = hub.carpetItems
 end
 
--- Your base (plot 1): brainrots on pedestals, nursery unlocked. Plot 2: nursery locked.
+-- Your base (plot 1): brainrots on pedestals with the owner-only rows (as the owner's client draws them),
+-- the nursery open with babies, teens and eggs. Plot 2: nursery locked.
+local OwnerStatus = load("src/shared/World/OwnerStatus.luau")
+local Blocks = load("src/server/World/Blocks.luau")
+local function nameplateOf(model)
+	return model.PrimaryPart:FindFirstChild("Nameplate"):FindFirstChild("Nameplate")
+end
 local owned = {
-	{ 1, "tralalero_tralala", "Rainbow" },
-	{ 2, "ballerina_cappuccina", "Normal" },
-	{ 3, "brr_brr_patapim", "Normal" },
-	{ 4, "bombardiro_crocodilo", "Normal" },
-	{ 5, "tung_tung_tung_sahur", "Evil" },
-	{ 6, "cappuccino_assassino", "Normal" },
-	{ 7, "ballerina_cappuccina", "Rainbow" },
-	{ 8, "brr_brr_patapim", "Normal" },
+	-- slot, character, variant, loyalty 0..1, timer fraction 0..1 (0 = leaving tonight)
+	{ 1, "tralalero_tralala", "Rainbow", 0.92, 0.9 },
+	{ 2, "ballerina_cappuccina", "Normal", 0.7, 0.62 },
+	{ 3, "brr_brr_patapim", "Normal", 0.35, 0.2 },
+	{ 4, "bombardiro_crocodilo", "Normal", 0.6, 0.45 },
+	{ 5, "tung_tung_tung_sahur", "Evil", 0.12, 0 },
+	{ 6, "cappuccino_assassino", "Normal", 0.8, 0.75 },
+	{ 7, "ballerina_cappuccina", "Rainbow", 0.5, 0.33 },
+	{ 8, "brr_brr_patapim", "Normal", 0.25, 0.07 },
 }
 for _, entry in owned do
-	local slot, id, variant = entry[1], entry[2], entry[3]
+	local slot, id, variant, loyalty, timer = entry[1], entry[2], entry[3], entry[4], entry[5]
 	local model = Brainrot.create(id, rarityOf(id), variant)
 	local top = Builder.pedestalTop(refs, slot)
 	local hover = model:GetAttribute("Hover") or 0
-	place(model, top * CFrame.new(0, hover, 0))
+	local facing = if timer <= 0 then CFrame.Angles(0, math.rad(150), 0) else CFrame.identity -- restless
+	place(model, top * CFrame.new(0, hover, 0) * facing)
 	lightning(model)
+	local gui = nameplateOf(model)
+	OwnerStatus.attach(gui)
+	OwnerStatus.set(gui, loyalty, timer)
 	model.Parent = refs.brainrots
 	local rim = Builder.rim(refs, slot)
 	if rim then
 		rim.Color = Color3.fromHex(Config.Rarities.byId[rarityOf(id)].color)
 	end
 end
+-- nursery pen: babies and a teen (public stage line + your rows)
+local pen = {
+	{ "tung_tung_tung_sahur", "Baby", 0.5, 0.55, 1 },
+	{ "ballerina_cappuccina", "Teen", 0.75, 0.8, 0.7 },
+	{ "cappuccino_assassino", "Baby", 0.5, 0.3, 0.16 },
+}
+for k, entry in pen do
+	local id, stage, scale, loyalty, timer = entry[1], entry[2], entry[3], entry[4], entry[5]
+	local model = Brainrot.create(id, rarityOf(id), "Normal", { stage = stage })
+	Runtime.scale(model, scale)
+	place(model, Builder.penSpot(refs, k + 1) * CFrame.Angles(0, math.rad(k * 25 - 30), 0))
+	local gui = nameplateOf(model)
+	OwnerStatus.attach(gui)
+	OwnerStatus.set(gui, loyalty, timer)
+	model.Parent = refs.brainrots
+end
+-- two eggs incubating
+for i, color in { "#B98CFF", "#FFD23F" } do
+	local top = refs.nursery.incubatorTops[i]
+	local ball =
+		Blocks.ball(refs.model, "Egg", 2.2, top * CFrame.new(0, 1.1, 0), color, { canCollide = false })
+	Blocks.floating(ball, {
+		{
+			text = if i == 1 then "Hatching 2:14" else "Ready to hatch!",
+			color = if i == 1 then "#FFFFFF" else "#7CFF9B",
+		},
+	}, 4.6, 1, 3, 60)
+end
 refs.signLabel.Text = "Your Base"
 Builder.setNursery(refs, true, 3, "")
 Builder.setNursery(plots[2], false, 3, "Unlock: $250K  or  R$ 99")
+plots[2].signLabel.Text = "Brainrotter's Base"
 for i = 3, Config.Game.PLOT_COUNT do
 	Builder.setNursery(plots[i], i % 3 == 0, 3, "")
 end
