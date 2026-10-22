@@ -303,13 +303,14 @@ local function labels(gui)
 				width = l.Size.X.Scale,
 			})
 		elseif l:IsA("Frame") and l:GetAttribute("Bar") ~= nil then
-			local fill = l:FindFirstChild("Fill")
+			local fill = l:FindFirstChild("Fill", true)
+			local track = l:FindFirstChild("Track")
 			table.insert(out, {
 				kind = "bar",
 				order = l.LayoutOrder,
 				value = l:GetAttribute("Bar"),
 				color = fill and rgb(fill.BackgroundColor3) or { 1, 1, 1 },
-				back = rgb(l.BackgroundColor3),
+				back = rgb(if track then track.BackgroundColor3 else l.BackgroundColor3),
 				height = l.Size.Y.Scale,
 				width = l.Size.X.Scale,
 				icon = l:GetAttribute("Icon"),

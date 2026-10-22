@@ -264,10 +264,14 @@ function Hud.Buttons(scope: Scope, store: Store.Store): Instance
 					side(2, Theme.yellow, "🥚", "Eggs", isDay, function()
 						store.eggsVisible:set(not Fusion.peek(store.eggsVisible))
 					end),
-					side(3, Theme.orange, "🏠", "Base", isDay, soon("Base management", 4)),
+					side(3, Theme.orange, "🏠", "Base", isDay, function()
+						store.nurseryVisible:set(true)
+					end),
 					-- night
 					side(1, Theme.blue, "🛡", "Defend", isNight, soon("Defences", 5)),
-					side(2, Theme.orange, "🏠", "Base", isNight, soon("Base management", 4)),
+					side(2, Theme.orange, "🏠", "Base", isNight, function()
+						store.nurseryVisible:set(true)
+					end),
 				},
 			}),
 			-- top-right (slot 1 is the rightmost)
@@ -284,7 +288,10 @@ function Hud.Buttons(scope: Scope, store: Store.Store): Instance
 				iconSize = 54,
 				caption = "BONK",
 				visible = isNight,
-				onClick = soon("Bonking", 3),
+				onClick = function()
+					-- the BONK button swings your bat (equip it from the backpack: 1); it catches runaways
+					store.pushToast("info", "Equip your Bonk Bat (press 1) and click to swing!")
+				end,
 			}),
 		},
 	})

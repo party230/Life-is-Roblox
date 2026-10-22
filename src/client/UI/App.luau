@@ -13,7 +13,10 @@ local Fusion = require(ReplicatedStorage.Packages.Fusion)
 local Remotes = require(ReplicatedStorage.Shared.Remotes)
 
 local Hud = require(script.Parent.Components.Hud)
+local BrainrotCard = require(script.Parent.Components.BrainrotCard)
 local EggsPanel = require(script.Parent.Components.EggsPanel)
+local FoodPanel = require(script.Parent.Components.FoodPanel)
+local NurseryPanel = require(script.Parent.Components.NurseryPanel)
 local ShopPanel = require(script.Parent.Components.ShopPanel)
 local Store = require(script.Parent.Store)
 local Theme = require(script.Parent.Theme)
@@ -52,6 +55,25 @@ local function DevToggle(scope: Scope, store: Store.Store): Instance
 		TextSize = 16,
 		Text = "DEV: Day ⇄ Night  (N)",
 		[Fusion.OnEvent("Activated")] = toggle,
+		[Fusion.Children] = { scope:New("UICorner")({ CornerRadius = UDim.new(1, 0) }) },
+	})
+end
+
+-- Studio-only test buttons for the runaway rules (ignored on live servers).
+local function DevButton(scope: Scope, label: string, offsetX: number, onClick: () -> ()): Instance
+	return scope:New("TextButton")({
+		Name = "DevButton",
+		Visible = RunService:IsStudio(),
+		AnchorPoint = Vector2.new(0.5, 1),
+		Position = UDim2.new(0.5, offsetX, 1, -10),
+		Size = UDim2.fromOffset(240, 34),
+		BackgroundColor3 = Color3.fromHex("#1B1530"),
+		BackgroundTransparency = 0.3,
+		TextColor3 = Color3.new(1, 1, 1),
+		FontFace = Theme.body,
+		TextSize = 16,
+		Text = label,
+		[Fusion.OnEvent("Activated")] = onClick,
 		[Fusion.Children] = { scope:New("UICorner")({ CornerRadius = UDim.new(1, 0) }) },
 	})
 end
@@ -103,7 +125,16 @@ function App.mount(): Store.Store
 					Hud.Toast(scope, store),
 					ShopPanel(scope, store),
 					EggsPanel(scope, store),
+					FoodPanel(scope, store),
+					NurseryPanel(scope, store),
+					BrainrotCard(scope, store),
 					DevToggle(scope, store),
+					DevButton(scope, "DEV: expire my timers", -260, function()
+						Remotes.DevAction:fire("ExpireTimers")
+					end),
+					DevButton(scope, "DEV: midnight now", 260, function()
+						Remotes.DevAction:fire("Midnight")
+					end),
 				},
 			}),
 		},
@@ -114,9 +145,25 @@ function App.mount(): Store.Store
 		scope,
 		ProximityPromptService.PromptTriggered:Connect(function(prompt)
 			local opens = prompt:GetAttribute("Opens")
-			if opens == "Eggs" then
+			local function only(v: Fusion.Value<boolean, any>)
 				store.shopVisible:set(false)
-				store.eggsVisible:set(true)
+				store.eggsVisible:set(false)
+				store.foodVisible:set(false)
+				store.nurseryVisible:set(false)
+				v:set(true)
+			end
+			if opens == "Eggs" then
+				only(store.eggsVisible)
+			elseif opens == "Food" then
+				only(store.foodVisible)
+			elseif opens == "Nursery" then
+				-- every base has a nursery door; only yours opens your nursery
+				local plot = Fusion.peek(store.plot)
+				if plot and prompt:GetAttribute("PlotIndex") == plot.mine then
+					only(store.nurseryVisible)
+				else
+					store.pushToast("info", "That's someone else's nursery.")
+				end
 			end
 		end)
 	)

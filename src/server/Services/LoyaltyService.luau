@@ -12,6 +12,7 @@ local RunService = game:GetService("RunService")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local Cycle = require(ReplicatedStorage.Shared.Logic.Cycle)
+local Growth = require(ReplicatedStorage.Shared.Logic.Growth)
 local Loyalty = require(ReplicatedStorage.Shared.Logic.Loyalty)
 local Remotes = require(ReplicatedStorage.Shared.Remotes)
 local Types = require(ReplicatedStorage.Shared.Types)
@@ -63,7 +64,13 @@ local function tickAll(dt: number)
 		if data and BaseService.plotOf(player) then
 			local changed = false
 			for id, b in data.brainrots do
-				if not runs[id] and Loyalty.tick(b, days) then
+				local stageBefore = Growth.stage(b).id
+				local becameLeaving = not runs[id] and Loyalty.tick(b, days)
+				if Growth.stage(b).id ~= stageBefore then
+					changed = true -- grew (passive growth): rebuild it at the new size
+					Remotes.Notify:fireClient(player, "good", `A baby grew into a {Growth.stage(b).id}!`)
+				end
+				if becameLeaving then
 					changed = true
 					local species = Config.Species.byId[b.speciesId]
 					Remotes.Notify:fireClient(
