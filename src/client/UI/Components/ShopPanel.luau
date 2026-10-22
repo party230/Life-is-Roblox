@@ -199,7 +199,7 @@ local function ShopPanel(scope: Scope, store: Store.Store): Instance
 						end),
 						children = {
 							Text(scope, {
-								text = "CONVEYOR SHOP",
+								text = "ON YOUR CARPET",
 								size = 38,
 								position = UDim2.fromScale(0.5, 0.5),
 								anchor = Vector2.new(0.5, 0.5),
@@ -222,7 +222,7 @@ local function ShopPanel(scope: Scope, store: Store.Store): Instance
 							if use(isNight) then
 								return "Belt stopped for the night"
 							end
-							return "New stock in " .. Format.clock(use(store.nextRotationAt) - use(store.now))
+							return "Next one in " .. Format.clock(use(store.nextRotationAt) - use(store.now))
 						end),
 						size = 22,
 						body = true,
@@ -262,6 +262,7 @@ local function ShopPanel(scope: Scope, store: Store.Store): Instance
 					scope:New("Frame")({
 						Name = "Cards",
 						BackgroundTransparency = 1,
+						ClipsDescendants = true, -- shows the 5 nearest the end of the carpet
 						Position = UDim2.fromOffset(40, 104),
 						Size = UDim2.new(1, -80, 0, CARD.Y),
 						[Fusion.Children] = scope:ForPairs(
