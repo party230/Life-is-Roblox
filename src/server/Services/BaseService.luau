@@ -93,7 +93,7 @@ local function assign(player: Player, index: number): boolean
 end
 
 local function isFriend(a: Player, b: Player): boolean
-	local ok, result = pcall(a.IsFriendsWith, a, b.UserId)
+	local ok, result = pcall(a.IsFriendsWithAsync, a, b.UserId)
 	return ok and result == true
 end
 

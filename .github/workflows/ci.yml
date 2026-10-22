@@ -18,11 +18,5 @@ jobs:
         run: scripts/install-tools.sh
       - name: Install packages
         run: .tools/bin/wally install
-      - name: Dump Fusion API (temporary, for development)
-        run: |
-          find Packages -type f | sort
-          cat Packages/Fusion.lua
-          f=$(find Packages/_Index -path '*fusion*' -name 'init.luau' -path '*fusion/src/init.luau' | head -1)
-          echo "=== $f"; cat "$f"
       - name: Lint + type-check + test
         run: scripts/check.sh

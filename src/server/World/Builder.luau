@@ -10,7 +10,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local Plots = require(ReplicatedStorage.Shared.Logic.Plots)
-local Parts = require(script.Parent.Parts)
+local Parts = require(ReplicatedStorage.Shared.World.Parts)
 
 local Builder = {}
 

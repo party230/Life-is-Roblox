@@ -13,7 +13,7 @@ local Roll = require(ReplicatedStorage.Shared.Logic.Roll)
 local ShopStock = require(ReplicatedStorage.Shared.Logic.ShopStock)
 local Types = require(ReplicatedStorage.Shared.Types)
 
-local BrainrotModel = require(script.Parent.Parent.World.BrainrotModel)
+local BrainrotModel = require(ReplicatedStorage.Shared.World.BrainrotModel)
 local Builder = require(script.Parent.Parent.World.Builder)
 local Entitlements = require(script.Parent.Parent.Entitlements)
 local BaseService = require(script.Parent.BaseService)

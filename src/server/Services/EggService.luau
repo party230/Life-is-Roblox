@@ -13,7 +13,7 @@ local Remotes = require(ReplicatedStorage.Shared.Remotes)
 local Roll = require(ReplicatedStorage.Shared.Logic.Roll)
 
 local Entitlements = require(script.Parent.Parent.Entitlements)
-local Parts = require(script.Parent.Parent.World.Parts)
+local Parts = require(ReplicatedStorage.Shared.World.Parts)
 local BaseService = require(script.Parent.BaseService)
 local BrainrotService = require(script.Parent.BrainrotService)
 local CycleService = require(script.Parent.CycleService)

@@ -5,7 +5,7 @@ type Controller = { init: () -> (), start: () -> () }
 
 local Controllers = script.Controllers
 local controllers: { Controller } = {
-	require(Controllers.DataController) :: Controller,
+	require(Controllers.UIController) :: Controller,
 }
 
 for _, controller in controllers do

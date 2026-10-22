@@ -1,5 +1,5 @@
 --!strict
--- Placeholder in-world brainrot: a chunky body in the species colours with a face, plus a name tag.
+-- Placeholder brainrot model (server: in the world; client: in ViewportFrame previews): a chunky body in the species colours with a face, plus a name tag.
 -- Replaced by real models once art lands; everything else only relies on Model + PrimaryPart.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
