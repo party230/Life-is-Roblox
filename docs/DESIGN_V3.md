@@ -13,7 +13,7 @@ Parts helpers and character models through the world renderer. UI screens come f
 | `design-hub.png`, `design-hub-close.png`, `design-hub-night.png` | the shared carpet loop, central portal, Egg Shop + Food Shop, leaderboards, event stage, trade zone, hangout |
 | `design-base-nursery-unlocked.png`, `design-nursery-interior.png` | your base with the nursery open |
 | `design-base-nursery-locked.png` | a neighbour's base with the nursery locked |
-| `design-owner-overlay.png` / `-others.png` | the owner's loyalty bar + runaway timer (normal / low / leaving tonight) vs what other players see |
+| `design-owner-overlay.png` / `-others.png`, `design-timer-closeup.png` | the owner's loyalty bar + runaway timer bar (plenty / ≤25% / ≤10% / leaving tonight) vs what other players see |
 | `design-base-owner-view.png` | the overlay in context, with the tighter nameplates |
 | `ui-food-feasts.png`, `ui-food-premium.png` | Food Shop UI |
 | `ui-nursery.png`, `ui-nursery-locked.png` | Nursery UI + unlock dialog |
@@ -55,7 +55,10 @@ and tells the owner which brainrot is being carried (the Q8 rule).
   - 1 in-game day = one full Day+Dusk+Night+Vote cycle ≈ 12.8 min at current cycle lengths.
   - At 0 the brainrot is "leaving tonight" and runs at mid-night.
   - Catch it (touch/BONK) → it goes home with −10 loyalty and the timer reset to the 2-day minimum.
-- **Overlay colours:** white ≥ 1 day, yellow < 1 day, red pill "LEAVING TONIGHT!".
+- **Overlay (owner feedback):** the timer is one long bar with no text.
+  - It shows the fraction left since the last feed, so feeding refills it.
+  - Green, then yellow at ≤ 25%, red at ≤ 10%. An empty track means "leaving tonight" (and the brainrot fidgets).
+  - The loyalty bar (with a heart) sits above it.
 - **Stolen brainrots:**
   - They keep their loyalty to the original owner. At ≥ `RETURN_HOME_THRESHOLD` = 70 they run home at
     mid-night, and the thief can catch them on the way.

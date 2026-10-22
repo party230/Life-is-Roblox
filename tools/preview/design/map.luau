@@ -336,11 +336,17 @@ local function tighten(model)
 	return lines * NAMEPLATE_LINE
 end
 
--- Owner-only rows on top of the nameplate (§2.2/2.5): loyalty bar + runaway timer. In game the owner's client
--- adds these rows locally to the replicated nameplate (they never replicate, other players never get the data).
--- state: "ok" | "low" | "leaving"
-local OWNER_ROWS = 2 * 0.62 -- studs added on top of the plate
-local function ownerStatus(model, plateHeight, loyalty, timer, state)
+-- Owner-only rows on top of the nameplate (§2.2/2.5): loyalty bar + runaway timer bar. In game the owner's
+-- client adds these rows locally to the replicated nameplate (they never replicate, other players never get
+-- the data). The timer is a long bar with no text: the fraction of the timer left since it was last filled
+-- (feeding tops it up), green, then yellow at <= 25%, red at <= 10%, empty = leaving tonight.
+local TIMER_YELLOW, TIMER_RED = 0.25, 0.10
+local OWNER_ROWS = 0.62 + 0.5 -- studs added on top of the plate
+local function timerColor(frac)
+	return if frac <= TIMER_RED then "#FF3B3B" elseif frac <= TIMER_YELLOW then "#FFD23F" else "#3DDC84"
+end
+
+local function ownerStatus(model, plateHeight, loyalty, timerFrac)
 	local gui = model.PrimaryPart.Nameplate.Nameplate
 	local total = plateHeight + OWNER_ROWS
 	for _, l in gui:GetChildren() do
@@ -348,37 +354,44 @@ local function ownerStatus(model, plateHeight, loyalty, timer, state)
 			l.Size = UDim2.fromScale(1, l.Size.Y.Scale * plateHeight / total)
 		end
 	end
-	local bar = Instance.new("Frame")
-	bar.Name = "OwnerLoyalty"
-	bar.LayoutOrder = -2
-	bar.Size = UDim2.fromScale(0.78, 0.62 / total)
-	bar.BackgroundColor3 = Color3.fromHex("#3A1630")
-	bar:SetAttribute("Bar", loyalty)
-	bar:SetAttribute("Icon", "♥")
-	bar:SetAttribute("IconColor", Color3.fromHex("#FF4F7B"))
-	bar:SetAttribute("OwnerOnly", true)
-	local fill = Instance.new("Frame")
-	fill.Name = "Fill"
-	fill.BackgroundColor3 =
-		Color3.fromHex(if loyalty >= 0.6 then "#FF4F7B" elseif loyalty >= 0.3 then "#FF8FA8" else "#C9A0AE")
-	fill.Parent = bar
-	bar.Parent = gui
-	local t = Instance.new("TextLabel")
-	t.Name = "OwnerTimer"
-	t.LayoutOrder = -1
-	t.Size = UDim2.fromScale(if state == "leaving" then 0.92 else 0.5, 0.62 / total)
-	t.Text = timer
-	t.Font = Enum.Font.FredokaOne
-	t.TextScaled = true
-	t.BackgroundTransparency = 0.15
-	t.BackgroundColor3 = Color3.fromHex(if state == "leaving" then "#D61F2C" else "#14121C")
-	t.TextColor3 = Color3.fromHex(if state == "low" then "#FFD23F" else "#FFFFFF")
-	t:SetAttribute("OwnerOnly", true)
-	local stroke = Instance.new("UIStroke")
-	stroke.Thickness = 2
-	stroke.Color = Color3.new(0, 0, 0)
-	stroke.Parent = t
-	t.Parent = gui
+	local function barRow(name, order, width, height, value, fillColor, back, icon)
+		local bar = Instance.new("Frame")
+		bar.Name = name
+		bar.LayoutOrder = order
+		bar.Size = UDim2.fromScale(width, height / total)
+		bar.BackgroundColor3 = Color3.fromHex(back)
+		bar:SetAttribute("Bar", value)
+		bar:SetAttribute("OwnerOnly", true)
+		if icon then
+			bar:SetAttribute("Icon", icon)
+			bar:SetAttribute("IconColor", Color3.fromHex("#FF4F7B"))
+		end
+		local fill = Instance.new("Frame")
+		fill.Name = "Fill"
+		fill.BackgroundColor3 = Color3.fromHex(fillColor)
+		fill.Parent = bar
+		bar.Parent = gui
+	end
+	barRow(
+		"OwnerLoyalty",
+		-2,
+		0.7,
+		0.62,
+		loyalty,
+		if loyalty >= 0.6 then "#FF4F7B" elseif loyalty >= 0.3 then "#FF8FA8" else "#C9A0AE",
+		"#3A1630",
+		"♥"
+	)
+	-- the runaway timer: one long bar, the full plate width
+	barRow(
+		"OwnerTimer",
+		-1,
+		1,
+		0.5,
+		timerFrac,
+		timerColor(timerFrac),
+		if timerFrac <= 0 then "#5A1010" else "#1E2A22"
+	)
 	gui.Size = UDim2.fromScale(NAMEPLATE_W, total)
 end
 
@@ -422,7 +435,7 @@ local function brainrot(id, variant, cf, opts)
 		h += NAMEPLATE_LINE
 	end
 	if opts.owner then
-		ownerStatus(model, h, opts.owner[1], opts.owner[2], opts.owner[3])
+		ownerStatus(model, h, opts.owner[1], opts.owner[2])
 	end
 	model.Parent = world
 	return model
@@ -1325,19 +1338,19 @@ end
 -- Brainrots in the bases ------------------------------------------------------------------------------------
 -- Your base: owner overlays (loyalty bar + runaway timer) on every brainrot you own.
 local mine = {
-	{ 1, "tralalero_tralala", "Rainbow", { 0.92, "12d 4h", "ok" } },
-	{ 2, "ballerina_cappuccina", "Normal", { 0.7, "5d 18h", "ok" } },
-	{ 3, "brr_brr_patapim", "Normal", { 0.35, "0d 9h", "low" } },
-	{ 4, "bombardiro_crocodilo", "Normal", { 0.6, "3d 6h", "ok" } },
-	{ 5, "tung_tung_tung_sahur", "Evil", { 0.12, "LEAVING TONIGHT!", "leaving" } },
-	{ 6, "cappuccino_assassino", "Normal", { 0.8, "8d 2h", "ok" } },
-	{ 7, "ballerina_cappuccina", "Rainbow", { 0.5, "1d 20h", "ok" } },
-	{ 9, "brr_brr_patapim", "Normal", { 0.25, "0d 3h", "low" } },
+	{ 1, "tralalero_tralala", "Rainbow", { 0.92, 0.9 } },
+	{ 2, "ballerina_cappuccina", "Normal", { 0.7, 0.62 } },
+	{ 3, "brr_brr_patapim", "Normal", { 0.35, 0.2 } },
+	{ 4, "bombardiro_crocodilo", "Normal", { 0.6, 0.45 } },
+	{ 5, "tung_tung_tung_sahur", "Evil", { 0.12, 0 } },
+	{ 6, "cappuccino_assassino", "Normal", { 0.8, 0.75 } },
+	{ 7, "ballerina_cappuccina", "Rainbow", { 0.5, 0.33 } },
+	{ 9, "brr_brr_patapim", "Normal", { 0.25, 0.07 } },
 }
 for _, b in mine do
 	local def = SLOTS[b[1]]
 	local cf = yourOrigin * CFrame.new(def.x, FLOOR_TOP + 1.6, def.z)
-	if b[4][3] == "leaving" then
+	if b[4][2] <= 0 then
 		cf *= CFrame.Angles(0, math.rad(150), 0) -- restless: turned to look out toward the hub
 	end
 	brainrot(b[2], b[3], cf, { owner = b[4] })
@@ -1347,19 +1360,19 @@ brainrot(
 	"tung_tung_tung_sahur",
 	"Normal",
 	yourOrigin * CFrame.new(-8, FLOOR_TOP, NURSERY_Z + 10) * CFrame.Angles(0, math.rad(20), 0),
-	{ scale = 0.5, stageLine = "Baby", owner = { 0.55, "2d 0h", "ok" } }
+	{ scale = 0.5, stageLine = "Baby", owner = { 0.55, 1 } }
 )
 brainrot(
 	"ballerina_cappuccina",
 	"Normal",
 	yourOrigin * CFrame.new(6, FLOOR_TOP, NURSERY_Z + 12) * CFrame.Angles(0, math.rad(-30), 0),
-	{ scale = 0.72, stageLine = "Teen", owner = { 0.8, "6d 10h", "ok" } }
+	{ scale = 0.72, stageLine = "Teen", owner = { 0.8, 0.7 } }
 )
 brainrot(
 	"cappuccino_assassino",
 	"Normal",
 	yourOrigin * CFrame.new(16, FLOOR_TOP, NURSERY_Z + 8),
-	{ scale = 0.5, stageLine = "Baby", owner = { 0.3, "0d 14h", "low" } }
+	{ scale = 0.5, stageLine = "Baby", owner = { 0.3, 0.16 } }
 )
 person(yourOrigin * CFrame.new(3, FLOOR_TOP, -10) * CFrame.Angles(0, math.rad(200), 0), 3)
 
@@ -1406,14 +1419,10 @@ box(
 )
 box(world, "StudioWall", Vector3.new(60, 24, 2), STUDIO * CFrame.new(0, 12, 14), BUILDING, { studs = true })
 local states = {
-	{ x = 12, id = "tung_tung_tung_sahur", owner = { 0.8, "4d 6h", "ok" }, caption = "Normal" },
-	{ x = 0, id = "tung_tung_tung_sahur", owner = { 0.35, "0d 7h", "low" }, caption = "Low (under 1 day)" },
-	{
-		x = -12,
-		id = "tung_tung_tung_sahur",
-		owner = { 0.1, "LEAVING TONIGHT!", "leaving" },
-		caption = "Leaving tonight",
-	},
+	{ x = 18, owner = { 0.8, 0.8 }, caption = "Plenty left" },
+	{ x = 6, owner = { 0.5, 0.22 }, caption = "25% or less" },
+	{ x = -6, owner = { 0.3, 0.08 }, caption = "10% or less" },
+	{ x = -18, owner = { 0.1, 0 }, caption = "Leaving tonight" },
 }
 for _, st in states do
 	local c = STUDIO * CFrame.new(st.x, FLOOR_TOP, 0)
@@ -1427,8 +1436,8 @@ for _, st in states do
 		ACCENTS[1],
 		{ material = Enum.Material.Neon, transparency = 0.2 }
 	)
-	local face = if st.owner[3] == "leaving" then CFrame.Angles(0, math.rad(-50), 0) else CFrame.identity
-	brainrot(st.id, "Normal", c * CFrame.new(0, 1.6, 0) * face, { owner = st.owner })
+	local face = if st.owner[2] <= 0 then CFrame.Angles(0, math.rad(-50), 0) else CFrame.identity
+	brainrot("tung_tung_tung_sahur", "Normal", c * CFrame.new(0, 1.6, 0) * face, { owner = st.owner })
 	local cap = box(world, "Caption", Vector3.new(10, 1.6, 0.4), c * CFrame.new(0, 0.9, -3.6), "#1B1D24")
 	surfaceText(cap, Enum.NormalId.Front, { { st.caption, "#FFFFFF" } })
 end

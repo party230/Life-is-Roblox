@@ -171,7 +171,8 @@ function nursery() {
 				${stageTrack("Baby", 24, 40)}
 				<div class="owner">
 					<div class="orow"><span class="olabel">♥ Loyalty</span><div class="bar love"><div style="width:55%"></div></div><span class="oval">55 · ×1.1 $/s</span></div>
-					<div class="orow"><span class="olabel">⏱ Runs away in</span><span class="timer">2d 0h</span><span class="muted small-note">Only you can see this</span></div>
+					<div class="orow"><span class="olabel">Runaway timer</span><div class="bar timer-bar"><div style="width:100%"></div></div></div>
+					<div class="orow"><span class="muted small-note">Only you can see these. The timer bar drains over time: yellow at 25%, red at 10%. Feeding refills it.</span></div>
 				</div>
 				<div class="feed">
 					<div class="pick">${icon("slice")}<div><b>Pizza Slice</b><span class="muted">You have 12</span></div><span class="caret">▾</span></div>
@@ -219,7 +220,7 @@ const NOTES = {
 	nursery: [
 		["NUR-1", "Six incubator slots: 3 free once the nursery is unlocked, 3 more from game-pass tiers (99 / 149 / 199 R$, proposed)."],
 		["NUR-2", "Growth: Baby → Teen at 40 pts, Teen → Adult at 100 more. Size ×0.5 / ×0.75 / ×1, income ×0.4 / ×0.7 / ×1 (proposed, all in Config)."],
-		["NUR-3", "Loyalty and the runaway timer are owner-only. The server sends them only to the owner; other players' panels have neither."],
+		["NUR-3", "The runaway timer is one long bar (no numbers): full after feeding, drains with in-game time, yellow at 25%, red at 10%, empty = leaving tonight. Loyalty and the timer are owner-only. Other players' panels have neither."],
 		["NUR-4", "Feed ×N uses any food you own; the gain chips preview the total before you feed."],
 		["Q-N1", "Do growth points from food also come with a slow passive trickle over time, or food only?"],
 	],

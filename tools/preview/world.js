@@ -137,7 +137,9 @@ function drawBar(g, l, cw, y, lh) {
 	g.fillStyle = css(l.back);
 	roundRect(g, bx + inset, y + pad + inset, bw - inset * 2, lh - (pad + inset) * 2, (lh - (pad + inset) * 2) / 2);
 	g.fill();
-	const fw = Math.max(lh * 0.3, (bw - inset * 2) * Math.max(0, Math.min(1, l.value)));
+	const v = Math.max(0, Math.min(1, l.value));
+	if (v <= 0) return; // empty bar: just the track
+	const fw = Math.max(lh * 0.3, (bw - inset * 2) * v);
 	g.fillStyle = css(l.color);
 	roundRect(g, bx + inset, y + pad + inset, fw, lh - (pad + inset) * 2, (lh - (pad + inset) * 2) / 2);
 	g.fill();
