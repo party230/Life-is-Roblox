@@ -161,3 +161,35 @@ opens the Eggs screen. Future stalls use the same attribute.
 **D31. Phase 2 work done ahead of the change** (server economy, income/collection, offline income, eggs,
 plaza drop, HUD/shop UI) is kept and powers the slice. Phase 2 itself resumes only after the slice is
 approved.
+
+## Style reference pass (owner's reference images)
+
+**D32. The slice matches the owner's style reference** (`assets/reference/style.png`):
+- a blue studded baseplate
+- a 10-stud red studded carpet with no trim
+- dark-grey buildings with neon strips and windows
+- a blue/white-awning stall on a stone platform with a green "Egg Shop" label
+- a portal screen ("NEW BRAINROTS EVERY FEW SECONDS!")
+- voxel trees around the ring
+- a vivid purple, starry night
+
+Nameplates are world-scaled (they shrink with distance, like the reference), FredokaOne with a thick black
+stroke. Each line is colour-coded: variant, name (white), rarity (rarity colour; a rainbow gradient for
+Secret), $/s (yellow) and price (green). The camera is unchanged: the default Roblox camera with the zoom
+cap already matched.
+
+**D33. Starter Bonk Bat.** The reference shows players holding a bat, so every player gets a "Bonk Bat"
+Tool in StarterPack. For now it only swings, rate-limited by `Defences.BONK_COOLDOWN`. Hits come with
+night defence (Phase 5).
+
+**D34. Mesh-ready kit; mesh pipeline on hold.** Per the owner: stay part-built through the slice and
+Phase 2. A model key of `"mesh:<name>"` loads an imported model from `ReplicatedStorage.Assets.Brainrots`.
+`Kit.adopt` then fits it to the same rig contract, so any character can be swapped without touching game
+logic (`docs/MODEL_CONTRACT.md`, enforced by `tests/Models.spec.luau`).
+
+**D35. Character reference images.** The six character references arrived as remote URLs. This
+environment can't reach those hosts, so they weren't saved, and the per-character comparison waits until
+the images are attached or committed as `assets/reference/<id>.png`. Cappuccino Assassino was added as
+the 6th slice character, built **provisionally** from the commonly known version. It gets rebuilt from
+its reference once that arrives.
+

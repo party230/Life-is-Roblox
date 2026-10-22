@@ -22,7 +22,7 @@ local Layout = {
 	PLOT_WIDTH = 56, -- local X
 	PLOT_DEPTH = 60, -- local Z
 	FLOOR_TOP = 1, -- plot floor surface height
-	WALL_HEIGHT = 4,
+	WALL_HEIGHT = 12, -- dark blocky base buildings (style reference)
 
 	PEDESTAL_SIZE = 5,
 	PEDESTAL_HEIGHT = 1.6,
@@ -45,7 +45,7 @@ local Layout = {
 		table.freeze({ x = 20, z = 0, tier = 3 }),
 	}) :: { SlotDef },
 
-	CARPET = table.freeze({ x = 0, width = 6, zStart = 25, zEnd = -24 }),
+	CARPET = table.freeze({ x = 0, width = 10, zStart = 25, zEnd = -24 }),
 	PORTAL = table.freeze({ x = 0, z = 27 }),
 	COLLECTOR = table.freeze({ x = -19, z = -19, width = 8, depth = 6 }),
 	GATE = table.freeze({ z = -30, width = 14 }),

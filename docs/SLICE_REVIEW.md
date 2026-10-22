@@ -20,8 +20,11 @@
   its rarity colour. Your income starts; walk over the yellow **COLLECT** pad to bank it.
 - Day HUD: cash + income/s, the cycle timer with phase bar, and 6 buttons (Shop and Eggs work; the rest say
   which phase brings them).
-- The plaza (follow the path out of the gate) has the **Egg Stall** with a merchant. Its prompt opens the
+- The plaza (follow the path out of the gate) has the **Egg Shop** stall (green floating label, blue/white
+  awning) with a merchant. Its prompt opens the
   Eggs screen.
+- Nameplates shrink with distance like the reference: variant / name / rarity / $/s / price, white text with
+  a thick black outline.
 - The escape lane: coloured obby blocks out of the gap in the right wall.
 - **Day/Night**: press **N** or click the **DEV: Day ⇄ Night** button at the bottom. Night switches the
   lighting, closes the carpet and eggs, and swaps the HUD to the night buttons + BONK.
@@ -30,7 +33,7 @@
 1. Spawn view of the base in **day**: carpet, portal, pedestals, gate (third-person, a bit zoomed out).
 2. Close-up of a brainrot **walking on the carpet**, nameplate readable.
 3. One shot of each character: **Tralalero Tralala, Tung Tung Tung Sahur, Bombardiro Crocodilo,
-   Ballerina Cappuccina, Brr Brr Patapim** (close enough to judge the likeness).
+   Ballerina Cappuccina, Brr Brr Patapim, Cappuccino Assassino** (close enough to judge the likeness).
 4. Each **variant** you catch: **Gold, Diamond, Rainbow** (try to catch it walking, with its trail),
    **Dark** (red eyes, smoke). Variant odds are boosted in the slice, so you'll see them quickly.
 5. The **Buy prompt** and the brainrot **on a pedestal** after buying (rim lit).
@@ -39,7 +42,9 @@
 8. The **plaza with the Egg Stall** and merchant.
 9. The **escape lane** exit.
 10. The same base view at **night** (press N), plus the night HUD.
-11. Anything that looks broken (floating parts, wrong facing, unreadable text) with the Output window
+11. **Holding the Bonk Bat** (it's in your backpack: press 1) and swinging it. Check the bat points up and out
+    of your hand, not sideways.
+12. Anything that looks broken (floating parts, wrong facing, unreadable text) with the Output window
     visible.
 
 If anything errors, a screenshot of the **Output** window is the most useful thing you can send.

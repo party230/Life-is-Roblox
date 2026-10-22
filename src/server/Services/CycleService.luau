@@ -22,7 +22,8 @@ local CycleService = {
 	phaseChanged = Signal.new() :: Signal.Signal<Types.CyclePhase, Types.CyclePhase?>,
 }
 
--- Tuned for Future lighting (set in default.project.json). Night stays readable: moonlit blue, not black.
+-- Tuned for Future lighting (set in default.project.json) to match the style reference (assets/reference/style.png):
+-- saturated and bright by day; at night a purple starry sky while the world stays vivid, not dark.
 type Look = {
 	clock: number,
 	ambient: Color3,
@@ -31,43 +32,53 @@ type Look = {
 	exposure: number,
 	haze: number,
 	atmoColor: Color3,
+	decay: Color3,
+	density: number,
 }
 local LIGHTING: { [Types.CyclePhase]: Look } = {
 	Day = {
-		clock = 14.5,
-		ambient = Color3.fromRGB(70, 70, 80),
-		outdoor = Color3.fromRGB(140, 140, 150),
-		brightness = 3,
-		exposure = 0.1,
-		haze = 0.6,
-		atmoColor = Color3.fromRGB(199, 214, 235),
+		clock = 14,
+		ambient = Color3.fromRGB(110, 110, 120),
+		outdoor = Color3.fromRGB(165, 165, 175),
+		brightness = 3.2,
+		exposure = 0.15,
+		haze = 0.4,
+		atmoColor = Color3.fromRGB(199, 220, 255),
+		decay = Color3.fromRGB(106, 140, 200),
+		density = 0.22,
 	},
 	Dusk = {
 		clock = 17.8,
-		ambient = Color3.fromRGB(80, 60, 70),
-		outdoor = Color3.fromRGB(170, 120, 110),
-		brightness = 2.2,
-		exposure = 0.05,
-		haze = 1.2,
+		ambient = Color3.fromRGB(110, 90, 100),
+		outdoor = Color3.fromRGB(180, 130, 130),
+		brightness = 2.6,
+		exposure = 0.15,
+		haze = 1,
 		atmoColor = Color3.fromRGB(255, 170, 130),
+		decay = Color3.fromRGB(150, 80, 110),
+		density = 0.28,
 	},
 	Night = {
 		clock = 0,
-		ambient = Color3.fromRGB(45, 50, 85),
-		outdoor = Color3.fromRGB(95, 105, 165),
-		brightness = 1.6,
-		exposure = 0.35,
-		haze = 1.5,
-		atmoColor = Color3.fromRGB(70, 80, 140),
+		ambient = Color3.fromRGB(105, 100, 150),
+		outdoor = Color3.fromRGB(155, 145, 210),
+		brightness = 2.4,
+		exposure = 0.45,
+		haze = 0.8,
+		atmoColor = Color3.fromRGB(120, 85, 200),
+		decay = Color3.fromRGB(70, 40, 140),
+		density = 0.3,
 	},
 	DawnVote = {
 		clock = 6.2,
-		ambient = Color3.fromRGB(70, 60, 80),
-		outdoor = Color3.fromRGB(160, 140, 170),
-		brightness = 2,
-		exposure = 0.15,
-		haze = 1,
-		atmoColor = Color3.fromRGB(240, 190, 200),
+		ambient = Color3.fromRGB(110, 95, 120),
+		outdoor = Color3.fromRGB(175, 150, 185),
+		brightness = 2.6,
+		exposure = 0.2,
+		haze = 0.8,
+		atmoColor = Color3.fromRGB(240, 190, 220),
+		decay = Color3.fromRGB(150, 100, 160),
+		density = 0.25,
 	},
 }
 
@@ -113,7 +124,12 @@ local function applyLighting(phase: Types.CyclePhase, instant: boolean)
 	}):Play()
 	local atmosphere = Lighting:FindFirstChildOfClass("Atmosphere")
 	if atmosphere then
-		TweenService:Create(atmosphere, info, { Haze = look.haze, Color = look.atmoColor }):Play()
+		TweenService:Create(atmosphere, info, {
+			Haze = look.haze,
+			Color = look.atmoColor,
+			Decay = look.decay,
+			Density = look.density,
+		}):Play()
 	end
 end
 

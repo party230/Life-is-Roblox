@@ -10,6 +10,14 @@
         "$path": {
           "optional": "Packages"
         }
+      },
+      "Assets": {
+        "$className": "Folder",
+        "Brainrots": {
+          "$path": {
+            "optional": "assets/models"
+          }
+        }
       }
     },
     "ServerScriptService": {
@@ -33,14 +41,18 @@
       "$properties": {
         "Technology": "Future",
         "Brightness": 3,
-        "ClockTime": 14.5,
+        "ClockTime": 14,
         "GlobalShadows": true,
         "EnvironmentDiffuseScale": 1,
         "EnvironmentSpecularScale": 1,
         "ShadowSoftness": 0.2
       },
       "Sky": {
-        "$className": "Sky"
+        "$className": "Sky",
+        "$properties": {
+          "StarCount": 3000,
+          "CelestialBodiesShown": true
+        }
       },
       "Atmosphere": {
         "$className": "Atmosphere",

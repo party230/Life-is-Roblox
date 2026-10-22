@@ -43,7 +43,7 @@ Status keys: **Model**: built (part-based) / not built. **Reference**: provided 
 | 21 | `trippi_troppi` | Trippi Troppi | Rare | not built | n/a |  | [ ] |
 | 22 | `chimpanzini_bananini` | Chimpanzini Bananini | Rare | not built | n/a |  | [ ] |
 | 23 | `bombombini_gusini` | Bombombini Gusini | Rare | not built | n/a |  | [ ] |
-| 24 | `cappuccino_assassino` | Cappuccino Assassino | Rare | not built | n/a |  | [ ] |
+| 24 | `cappuccino_assassino` | Cappuccino Assassino | Rare | built (provisional) | *missing* |  | [ ] |
 | 25 | `frigo_camelo` | Frigo Camelo | Rare | not built | n/a |  | [ ] |
 | 26 | `glorbo_fruttodrillo` | Glorbo Fruttodrillo | Rare | not built | n/a |  | [ ] |
 | 27 | `tric_trac_baraboom` | Tric Trac Baraboom | Rare | not built | n/a |  | [ ] |
@@ -73,6 +73,14 @@ Status keys: **Model**: built (part-based) / not built. **Reference**: provided 
 
 ## Built without a reference image
 
-These were modelled from the commonly known meme versions, since `assets/reference/` was empty:
+These were modelled from the commonly known meme versions. The owner sent reference images as remote
+links, but they couldn't be downloaded here, so they're still missing from `assets/reference/`:
 
-- Tralalero Tralala, Tung Tung Tung Sahur, Bombardiro Crocodilo, Ballerina Cappuccina, Brr Brr Patapim
+- Tralalero Tralala, Tung Tung Tung Sahur, Bombardiro Crocodilo, Ballerina Cappuccina, Brr Brr Patapim,
+  Cappuccino Assassino
+
+## Reference images
+
+The reference images are third-party fan art and stills taken from the web. They stay in the repo **only as
+modelling references** and never ship in the game. Before publishing, check that nothing in a model copies
+a specific artist's work closely enough to need permission.

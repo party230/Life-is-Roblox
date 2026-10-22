@@ -51,6 +51,12 @@ function Kit.new(name: string, height: number, width: number?): Kit
 	root.Parent = model
 	model.PrimaryPart = root
 
+	Kit.addAttachments(root, height)
+	return setmetatable({ model = model, root = root, body = nil :: BasePart?, height = height }, Kit)
+end
+
+-- The attachments every rig carries (positions relative to a Root centred at height / 2).
+function Kit.addAttachments(root: BasePart, height: number)
 	local function attach(attName: string, y: number)
 		local a = Instance.new("Attachment")
 		a.Name = attName
@@ -61,8 +67,6 @@ function Kit.new(name: string, height: number, width: number?): Kit
 	attach("Vfx", height * 0.55)
 	attach("TrailA", height * 0.7)
 	attach("TrailB", height * 0.25)
-
-	return setmetatable({ model = model, root = root, body = nil :: BasePart?, height = height }, Kit)
 end
 
 local function makePart(shape: string?): BasePart
@@ -292,6 +296,98 @@ function Kit.weldTo(_self: Kit, child: BasePart, parentPart: BasePart)
 	if weld then
 		weld.Part0 = parentPart
 	end
+end
+
+-- Turns any plain Model (e.g. an imported MeshPart character) into the standard rig without moving it:
+-- adds Root + attachments around its bounds (feet = lowest point), Motor6Ds the largest part as Body, welds
+-- the rest to it, and tags roles by name ("Eye*" = eye, "Pupil*" = pupil). See docs/MODEL_CONTRACT.md.
+function Kit.adopt(model: Model, opts: { hover: number?, idle: string? }?): Model
+	local existing = model:FindFirstChild("Root")
+	if existing and existing:IsA("BasePart") and existing:FindFirstChild("Anim") then
+		return model
+	end
+	local parts: { BasePart } = {}
+	for _, d in model:GetDescendants() do
+		if d:IsA("BasePart") then
+			table.insert(parts, d)
+		end
+	end
+	assert(#parts > 0, `Kit.adopt: {model.Name} has no parts`)
+	-- axis-aligned bounds from part corners
+	local minV = Vector3.new(math.huge, math.huge, math.huge)
+	local maxV = -minV
+	local body = parts[1]
+	local bestVolume = 0
+	for _, p in parts do
+		local half = p.Size / 2
+		for _, sx in { -1, 1 } do
+			for _, sy in { -1, 1 } do
+				for _, sz in { -1, 1 } do
+					local corner =
+						p.CFrame:PointToWorldSpace(Vector3.new(half.X * sx, half.Y * sy, half.Z * sz))
+					minV = minV:Min(corner)
+					maxV = maxV:Max(corner)
+				end
+			end
+		end
+		local volume = p.Size.X * p.Size.Y * p.Size.Z
+		if volume > bestVolume then
+			bestVolume = volume
+			body = p
+		end
+	end
+	local height = maxV.Y - minV.Y
+	local width = math.max(maxV.X - minV.X, maxV.Z - minV.Z) * 0.6
+	local feet = Vector3.new((minV.X + maxV.X) / 2, minV.Y, (minV.Z + maxV.Z) / 2)
+
+	local root = Instance.new("Part")
+	root.Name = "Root"
+	root.Anchored = true
+	root.CanCollide = false
+	root.CanQuery = true
+	root.CanTouch = false
+	root.Transparency = 1
+	root.Size = Vector3.new(width, height, width)
+	root.CFrame = CFrame.new(feet + Vector3.new(0, height / 2, 0))
+	root.Parent = model
+	Kit.addAttachments(root, height)
+
+	for _, p in parts do
+		p.Anchored = false
+		p.CanCollide = false
+		p.CanTouch = false
+		p.CanQuery = false
+		p.Massless = true
+		local name = string.lower(p.Name)
+		if p:GetAttribute("Role") == nil then
+			p:SetAttribute(
+				"Role",
+				if string.sub(name, 1, 5) == "pupil"
+					then "pupil"
+					elseif string.sub(name, 1, 3) == "eye" then "eye"
+					else "skin"
+			)
+		end
+		p:SetAttribute("BaseColor", p.Color)
+		if p ~= body then
+			local weld = Instance.new("WeldConstraint")
+			weld.Part0 = body
+			weld.Part1 = p
+			weld.Parent = p
+		end
+	end
+	local motor = Instance.new("Motor6D")
+	motor.Name = "Anim"
+	motor.Part0 = root
+	motor.Part1 = body
+	motor.C0 = root.CFrame:Inverse() * body.CFrame
+	motor.Parent = root
+	model.PrimaryPart = root
+	local o: { hover: number?, idle: string? } = opts or {}
+	model:SetAttribute("Hover", o.hover or model:GetAttribute("Hover") or 0)
+	model:SetAttribute("Idle", o.idle or model:GetAttribute("Idle") or "bob")
+	model.WorldPivot = CFrame.new(feet)
+	return model
 end
 
 function Kit.finish(self: Kit, opts: { hover: number?, idle: string? }?): Model

@@ -4,7 +4,30 @@
 local fs = require("@lune/fs")
 local process = require("@lune/process")
 
+local roblox = require("@lune/roblox")
+
 local Harness = require("./Harness")
+
+-- Roblox datatypes for specs that build Instances (model contract tests).
+for _, k in
+	{
+		"Instance",
+		"Vector3",
+		"CFrame",
+		"Color3",
+		"Enum",
+		"Vector2",
+		"UDim2",
+		"UDim",
+		"ColorSequence",
+		"ColorSequenceKeypoint",
+		"NumberSequence",
+		"NumberSequenceKeypoint",
+		"NumberRange",
+	}
+do
+	(getfenv(0) :: any)[k] = (roblox :: any)[k]
+end
 
 local files: { string } = {}
 for _, name in fs.readDir("tests") do

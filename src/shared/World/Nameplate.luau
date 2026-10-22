@@ -1,6 +1,6 @@
 --!strict
 -- Floating nameplate over every brainrot: variant (if any), name, rarity (in rarity colour) and income $X/s.
--- Carpet brainrots also show their price. Built on the model's Nameplate attachment.
+-- Carpet brainrots also show their price. Built on the model's Nameplate attachment, world-scaled (studs).
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -11,30 +11,49 @@ local Income = require(ReplicatedStorage.Shared.Logic.Income)
 
 local Nameplate = {}
 
-local INK = Color3.fromHex("#1B1530")
+local STROKE = Color3.new(0, 0, 0)
+local WIDTH_STUDS = 8
+local LINE_STUDS = 0.95 -- height of a weight-1 line, in studs (world-scaled like the style reference)
+local INCOME_COLOR = Color3.fromHex("#FFE34D")
+local PRICE_COLOR = Color3.fromHex("#5CFF6B")
 
 export type Options = {
 	price: number?, -- carpet only
 }
 
-local function line(parent: Instance, order: number, text: string, color: Color3, size: number): TextLabel
+type Line = { text: string, color: Color3, weight: number, gradient: boolean? }
+
+local function addLine(parent: Instance, order: number, line: Line, totalWeight: number): TextLabel
 	local label = Instance.new("TextLabel")
 	label.Name = `Line{order}`
 	label.LayoutOrder = order
 	label.BackgroundTransparency = 1
-	label.Size = UDim2.new(1, 0, 0, size)
+	label.Size = UDim2.fromScale(1, line.weight / totalWeight)
 	label.Font = Enum.Font.FredokaOne
-	label.TextSize = size
-	label.TextColor3 = color
-	label.Text = text
+	label.TextScaled = true
+	label.TextColor3 = line.color
+	label.Text = line.text
 	local stroke = Instance.new("UIStroke")
-	stroke.Thickness = 2
-	stroke.Color = INK
+	stroke.Thickness = 3.5
+	stroke.Color = STROKE
+	stroke.LineJoinMode = Enum.LineJoinMode.Round
 	stroke.Parent = label
+	if line.gradient then
+		label.TextColor3 = Color3.new(1, 1, 1)
+		local g = Instance.new("UIGradient")
+		g.Color = ColorSequence.new({
+			ColorSequenceKeypoint.new(0, Color3.fromHex("#FF5C8A")),
+			ColorSequenceKeypoint.new(0.5, Color3.fromHex("#FFD23F")),
+			ColorSequenceKeypoint.new(1, Color3.fromHex("#4DA3FF")),
+		})
+		g.Parent = label
+	end
 	label.Parent = parent
 	return label
 end
 
+-- Stacked nameplate: variant (if any) / name / rarity / $ per sec / price (carpet only).
+-- White text with a thick black stroke; variant, rarity and money lines are colour-coded.
 function Nameplate.attach(
 	model: Model,
 	speciesId: string,
@@ -52,37 +71,46 @@ function Nameplate.attach(
 	local rarityDef = Config.Rarities.byId[def.rarity]
 	local variantDef = Config.Variants.byId[variant] or Config.Variants.byId.Normal
 
+	local lines: { Line } = {}
+	if variantDef.displayName ~= "" then
+		table.insert(
+			lines,
+			{ text = variantDef.displayName, color = Color3.fromHex(variantDef.nameColor), weight = 0.85 }
+		)
+	end
+	table.insert(lines, { text = def.displayName, color = Color3.new(1, 1, 1), weight = 1.1 })
+	table.insert(lines, {
+		text = rarityDef.id :: string,
+		color = Color3.fromHex(rarityDef.color),
+		weight = 0.85,
+		gradient = rarityDef.style == "rainbowRim",
+	})
+	table.insert(lines, {
+		text = Format.perSec(Income.perSec(speciesId, variant, rarity)),
+		color = INCOME_COLOR,
+		weight = 0.9,
+	})
+	if o.price then
+		table.insert(lines, { text = Format.price(o.price), color = PRICE_COLOR, weight = 1 })
+	end
+	local total = 0
+	for _, l in lines do
+		total += l.weight
+	end
+
 	local gui = Instance.new("BillboardGui")
 	gui.Name = "Nameplate"
-	gui.Size = UDim2.fromOffset(220, 110)
-	gui.SizeOffset = Vector2.new(0, 0.5)
+	gui.Size = UDim2.fromScale(WIDTH_STUDS, total * LINE_STUDS)
+	gui.SizeOffset = Vector2.new(0, 0.5) -- grow upward from the attachment
 	gui.LightInfluence = 0
-	gui.MaxDistance = 110
+	gui.MaxDistance = 120
 	gui.AlwaysOnTop = false
 	local layout = Instance.new("UIListLayout")
 	layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-	layout.VerticalAlignment = Enum.VerticalAlignment.Bottom
 	layout.SortOrder = Enum.SortOrder.LayoutOrder
 	layout.Parent = gui
-
-	if variantDef.displayName ~= "" then
-		line(gui, 1, variantDef.displayName, Color3.fromHex(variantDef.nameColor), 17)
-	end
-	line(gui, 2, def.displayName, Color3.new(1, 1, 1), 20)
-	local rarityLine = line(gui, 3, rarityDef.id, Color3.fromHex(rarityDef.color), 17)
-	if rarityDef.style == "rainbowRim" then
-		rarityLine.TextColor3 = Color3.new(1, 1, 1)
-		local g = Instance.new("UIGradient")
-		g.Color = ColorSequence.new({
-			ColorSequenceKeypoint.new(0, Color3.fromHex("#FF5C8A")),
-			ColorSequenceKeypoint.new(0.5, Color3.fromHex("#FFD23F")),
-			ColorSequenceKeypoint.new(1, Color3.fromHex("#4DA3FF")),
-		})
-		g.Parent = rarityLine
-	end
-	line(gui, 4, Format.perSec(Income.perSec(speciesId, variant, rarity)), Color3.fromHex("#7CFF9B"), 17)
-	if o.price then
-		line(gui, 5, Format.price(o.price), Color3.fromHex("#FFD23F"), 20)
+	for i, l in lines do
+		addLine(gui, i, l, total)
 	end
 	gui.Adornee = anchor
 	gui.Parent = anchor

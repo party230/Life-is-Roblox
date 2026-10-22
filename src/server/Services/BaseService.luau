@@ -3,6 +3,7 @@
 -- next to a friend if possible), spawns them there, and frees the plot when they leave.
 
 local Players = game:GetService("Players")
+local StarterPack = game:GetService("StarterPack")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local StarterPlayer = game:GetService("StarterPlayer")
 
@@ -11,6 +12,7 @@ local Plots = require(ReplicatedStorage.Shared.Logic.Plots)
 local Remotes = require(ReplicatedStorage.Shared.Remotes)
 local Signal = require(ReplicatedStorage.Shared.Util.Signal)
 
+local Bat = require(script.Parent.Parent.World.Bat)
 local Builder = require(script.Parent.Parent.World.Builder)
 local DataService = require(script.Parent.DataService)
 
@@ -149,6 +151,10 @@ end
 
 function BaseService.init()
 	refs = Builder.build()
+	-- everyone carries the Bonk bat (style reference); bonking itself arrives in Phase 3
+	if not StarterPack:FindFirstChild("Bonk Bat") then
+		Bat.build().Parent = StarterPack
+	end
 	StarterPlayer.CameraMaxZoomDistance = Config.Game.CAMERA_MAX_ZOOM
 	StarterPlayer.CameraMinZoomDistance = Config.Game.CAMERA_MIN_ZOOM
 end

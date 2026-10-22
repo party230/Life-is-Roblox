@@ -1,5 +1,22 @@
 # Changelog
 
+## Style reference pass (awaiting Studio feedback)
+
+- **World matched to `assets/reference/style.png`:**
+  - blue studded floor; 10-wide red studded carpet
+  - dark neon-trimmed walls with windows
+  - Egg Shop stall with a blue/white awning and a green floating label
+  - portal screen; voxel trees
+  - purple starry night (Sky, Atmosphere, per-phase lighting)
+- **Nameplates rewritten:** world-scaled, thick black stroke, colour-coded lines.
+- **Bonk Bat tool** in StarterPack (swing only).
+- **Cappuccino Assassino added** as the 6th slice character (provisional, no reference yet).
+- **Mesh-ready models:**
+  - `"mesh:<name>"` model keys and `Kit.adopt` bring imported models into the rig contract
+  - `docs/MODEL_CONTRACT.md` documents the contract
+  - `tests/Models.spec.luau` checks it
+- **Previews:** re-rendered (6 characters × 5 variants), with before/after composites in `assets/previews/`.
+
 ## Vertical slice (Phase 1 redo, awaiting feedback)
 
 - Direction change logged (DECISIONS D20–D31): real 3D Roblox presentation, a 50-character meme roster,

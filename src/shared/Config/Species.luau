@@ -59,7 +59,7 @@ local ROSTER: { [string]: { Row } } = {
 		R("trippi_troppi", "Trippi Troppi", 0.90),
 		R("chimpanzini_bananini", "Chimpanzini Bananini", 1.05),
 		R("bombombini_gusini", "Bombombini Gusini", 1.00),
-		R("cappuccino_assassino", "Cappuccino Assassino", 1.10),
+		R("cappuccino_assassino", "Cappuccino Assassino", 1.10, "cappuccino_assassino"),
 		R("frigo_camelo", "Frigo Camelo", 0.95),
 		R("glorbo_fruttodrillo", "Glorbo Fruttodrillo", 1.00),
 		R("tric_trac_baraboom", "Tric Trac Baraboom", 1.05),
