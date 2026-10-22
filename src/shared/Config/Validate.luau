@@ -134,6 +134,28 @@ function Validate.run(config: any): Result
 		end
 	end
 
+	for _, sp in config.Species.list do
+		for _, field in { "color", "accent" } do
+			local hex = sp[field]
+			if type(hex) ~= "string" or not string.match(hex, "^#%x%x%x%x%x%x$") then
+				err(`species {sp.id} has an invalid {field} colour`)
+			end
+		end
+	end
+	checkRarityWeights("Shop.PLAZA_DROP_RARITY_WEIGHTS", config.Shop.PLAZA_DROP_RARITY_WEIGHTS)
+	checkRollable("Shop.PLAZA_DROP_RARITY_WEIGHTS", config.Shop.PLAZA_DROP_RARITY_WEIGHTS)
+	if #config.Layout.SLOTS ~= g.MAX_SLOTS then
+		err(`Layout.SLOTS has {#config.Layout.SLOTS} slots but MAX_SLOTS is {g.MAX_SLOTS}`)
+	end
+	local starting = 0
+	for _, slot in config.Layout.SLOTS do
+		if slot.tier == 0 then
+			starting += 1
+		end
+	end
+	if starting ~= g.START_SLOTS then
+		err(`Layout.SLOTS has {starting} tier-0 slots but START_SLOTS is {g.START_SLOTS}`)
+	end
 	checkRarityWeights("Shop.RARITY_WEIGHTS", config.Shop.RARITY_WEIGHTS)
 	checkRollable("Shop.RARITY_WEIGHTS", config.Shop.RARITY_WEIGHTS)
 	for _, egg in config.Eggs.list do

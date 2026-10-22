@@ -15,6 +15,21 @@ local Shop = {
 		Mythic = 0.05,
 		Secret = 0,
 	}),
+	OPEN_AT_NIGHT = false, -- belt closes for Night and the dawn vote; defences are sold from the Defend menu
+	-- Server-wide plaza drop: every few minutes of Day a Rare+ appears on the plaza belt. First to buy wins.
+	PLAZA_DROP_INTERVAL = 180,
+	PLAZA_DROP_DURATION = 60,
+	PLAZA_DROP_BUY_RADIUS = 14, -- studs from the plaza belt
+	PLAZA_DROP_PRICE_MULT = 1.0,
+	PLAZA_DROP_RARITY_WEIGHTS = table.freeze({
+		Common = 0,
+		Uncommon = 0,
+		Rare = 70,
+		Epic = 22,
+		Legendary = 7,
+		Mythic = 1,
+		Secret = 0,
+	}),
 }
 
 return table.freeze(Shop)

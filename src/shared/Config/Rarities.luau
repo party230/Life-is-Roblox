@@ -13,6 +13,7 @@ export type RarityDef = {
 	carrySpeedMult: number,
 	shopPrice: number,
 	color: string, -- hex; UI converts with Color3.fromHex
+	style: "solid" | "rainbowRim", -- Secret: black chip with a rainbow rim (approved Phase 1)
 }
 
 local list: { RarityDef } = {
@@ -24,6 +25,7 @@ local list: { RarityDef } = {
 		carrySpeedMult = 1.0,
 		shopPrice = 50,
 		color = "#C8C8C8",
+		style = "solid",
 	},
 	{
 		id = "Uncommon",
@@ -33,6 +35,7 @@ local list: { RarityDef } = {
 		carrySpeedMult = 0.95,
 		shopPrice = 200,
 		color = "#5AC85A",
+		style = "solid",
 	},
 	{
 		id = "Rare",
@@ -42,6 +45,7 @@ local list: { RarityDef } = {
 		carrySpeedMult = 0.9,
 		shopPrice = 1_000,
 		color = "#468CFF",
+		style = "solid",
 	},
 	{
 		id = "Epic",
@@ -51,6 +55,7 @@ local list: { RarityDef } = {
 		carrySpeedMult = 0.85,
 		shopPrice = 5_000,
 		color = "#AA50FF",
+		style = "solid",
 	},
 	{
 		id = "Legendary",
@@ -60,6 +65,7 @@ local list: { RarityDef } = {
 		carrySpeedMult = 0.8,
 		shopPrice = 25_000,
 		color = "#FFB428",
+		style = "solid",
 	},
 	{
 		id = "Mythic",
@@ -69,6 +75,7 @@ local list: { RarityDef } = {
 		carrySpeedMult = 0.75,
 		shopPrice = 150_000,
 		color = "#FF466E",
+		style = "solid",
 	},
 	{
 		id = "Secret",
@@ -78,6 +85,7 @@ local list: { RarityDef } = {
 		carrySpeedMult = 0.7,
 		shopPrice = 1_000_000,
 		color = "#141414",
+		style = "rainbowRim",
 	},
 }
 

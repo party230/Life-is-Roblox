@@ -13,4 +13,5 @@ return table.freeze({
 	Rotter = require("@self/Rotter"),
 	Products = require("@self/Products"),
 	Network = require("@self/Network"),
+	Layout = require("@self/Layout"),
 })
