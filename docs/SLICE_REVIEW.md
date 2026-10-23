@@ -56,9 +56,11 @@ Runaway timers still tick in real time while you're in the server: 1 in-game day
      get "will run away tonight" toasts.
    - Feed one of them: it calms down.
    - Press **N** (Night), or **DEV: midnight now**. The rest jump off their pedestals with a red
-     **RUNAWAY!** label and run out of the gate toward the hub.
+     **RUNAWAY!** label. They weave round the other pedestals and out of the gate (pathfinding), then run to
+     the hub.
+   - Your income (HUD and collector) drops the moment they start running.
    - **Catch one** by touching it or swinging the **Bonk Bat** at it (press 1 to equip, click to swing). It
-     goes back to its pedestal and loses 10 loyalty.
+     goes back to its pedestal, loses 10 loyalty and earns again.
    - Let another reach the carpet: it walks the loop with a price, and **anyone** can buy it, even at night.
 7. **Nursery:**
    - The Base button, or the door prompt at the back of your base, opens the **unlock dialog**. The price scales
@@ -75,7 +77,9 @@ Runaway timers still tick in real time while you're in the server: 1 in-game day
 1. **Your base** from the gate, with the owner rows over your brainrots.
 2. **Close-up** of one brainrot's nameplate showing the heart + loyalty bar and the long timer bar.
 3. The same brainrot after **DEV: expire my timers**: red / empty bar, fidgeting.
-4. A **runaway running** out of the gate with its RUNAWAY! label, and the moment you **catch it** (toast).
+4. A **runaway running** round the pedestals and out of the gate with its RUNAWAY! label, the moment you
+   **catch it** (toast), and your income before and after a run starts. If **Output** says "no path for
+   runaway", screenshot that too.
 5. A runaway **walking the hub carpet** with a price.
 6. The **hub** from above the gate path: portal, carpet loop, Egg Shop and Food Shop.
 7. The **Food Shop** screen on two tabs (Snacks and Feasts), with the **BEST FOR YOU** badge visible.

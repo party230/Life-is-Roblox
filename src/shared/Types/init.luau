@@ -29,6 +29,7 @@ export type Brainrot = {
 	-- Growth (Baby -> Teen -> Adult by points; see Config/Nursery)
 	growth: number,
 	inNursery: boolean, -- living in the nursery pen (not on a pedestal, not in storage)
+	running: boolean?, -- running away right now: earns nothing until caught (cleared on catch, arrival and load)
 }
 
 export type PendingEgg = {

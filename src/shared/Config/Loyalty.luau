@@ -32,6 +32,12 @@ return table.freeze({
 	CATCH_RADIUS = 5, -- studs, touching
 	BONK_RANGE = 8, -- studs, in front of the bat
 	RUN_SPEED = 14, -- studs per second (a little slower than a player, so it can be caught)
+	-- Runaways pathfind (PathfindingService) round pedestals and walls
+	RUN_HOP_OFF = 5.5, -- studs toward the gate: where it lands when it jumps off its pedestal (between rows)
+	RUN_AGENT_RADIUS = 2,
+	RUN_AGENT_HEIGHT = 5,
+	RUN_WAYPOINT_SPACING = 6,
+	RUN_CARPET_APPROACH = 3, -- studs outside the carpet edge where the path ends; it steps onto the carpet from there
 
 	-- Stolen brainrots: they remember their loyalty to the original owner
 	RETURN_HOME_THRESHOLD = 70, -- at or above, it runs home at the middle of the next night

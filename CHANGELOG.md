@@ -20,8 +20,10 @@
 - **Monetisation:** Nursery Unlock skip, Robux food bundles and Extra Incubator passes added; Treat Packs
   removed; the Bond Collar now pauses the timer; idempotent receipts.
 - **Save v4:** migration with tests. New tests for the timer, the runaway/return decision, income, growth and
-  food pricing (115 tests).
+  food pricing (116 tests).
 - **Fixes:**
+  - Runaways pathfind (PathfindingService) round pedestals and walls instead of walking in a straight line.
+  - A runaway earns nothing from the moment it starts running, and earns again only if caught.
   - The Bonk Bat swing now works (each player's copy is hooked).
   - Disabled labels are no longer drawn in previews.
 - **Previews:** real-code world renders in `assets/previews/world-*.png`; Studio steps and screenshot

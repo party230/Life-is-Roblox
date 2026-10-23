@@ -1,7 +1,7 @@
 --!strict
 -- Income maths (D10, D39): BASE_INCOME_PER_SEC x character incomeFactor x rarity.incomeMult x variant.incomeMult
 -- (cached as brainrot.incomePerSec), then x loyalty multiplier x growth-stage multiplier.
--- Only brainrots standing on a pedestal earn.
+-- Only brainrots standing on a pedestal earn, and never while running away.
 
 local Config = require("../Config")
 local Types = require("../Types")
@@ -33,8 +33,12 @@ function Income.refresh(data: Types.PlayerData): boolean
 	return changed
 end
 
--- What one brainrot earns per second on a pedestal (loyalty and growth stage included).
+-- What one brainrot earns per second on a pedestal (loyalty and growth stage included). A runaway earns nothing
+-- from the moment it starts running; it earns again only if it's caught.
 function Income.effective(b: Types.Brainrot): number
+	if b.running then
+		return 0
+	end
 	return b.incomePerSec * Loyalty.incomeFactor(b)
 end
 

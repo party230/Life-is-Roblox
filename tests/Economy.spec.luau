@@ -44,6 +44,20 @@ describe("Income", function()
 		expect(Income.basePerSec(data)).to.be.near(6)
 	end)
 
+	it("stops a runaway's income while it runs and restores it when caught", function()
+		local data = Template.create()
+		data.brainrots.a = Roll.newBrainrot("a", "brr_brr_patapim", "Normal", 1, 0)
+		data.brainrots.b = Roll.newBrainrot("b", "ballerina_cappuccina", "Normal", 1, 0)
+		data.pedestals["1"] = "a"
+		data.pedestals["2"] = "b"
+		local both = Income.basePerSec(data)
+		data.brainrots.b.running = true
+		expect(Income.effective(data.brainrots.b)).to.equal(0)
+		expect(Income.basePerSec(data)).to.be.near(Income.effective(data.brainrots.a))
+		data.brainrots.b.running = nil -- caught
+		expect(Income.basePerSec(data)).to.be.near(both)
+	end)
+
 	it("pays offline income at the reduced rate, capped", function()
 		local perSec = 10
 		local hour = 3600

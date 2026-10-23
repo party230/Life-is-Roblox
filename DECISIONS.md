@@ -264,8 +264,14 @@ Implementation choices:
   they can be tested. Midnight comes 4 s after switching to Night, and Studio dev buttons can expire timers or
   trigger midnight.
 - **Leaving tonight:** a brainrot whose timer runs out fidgets; feeding it before midnight saves it. At
-  midnight it leaves its pedestal and walks out of the gate, down its spoke, to the nearest point of the carpet
-  (RUN_SPEED 14).
+  midnight it jumps off its pedestal and runs (RUN_SPEED 14) to the carpet point nearest its spoke.
+  - **Pathfinding (owner fix before testing):** it lands on the floor between pedestal rows, then follows a
+    `PathfindingService` path (agent radius 2, height 5, no jumping) round pedestals and walls, out of the gate,
+    to just outside the carpet, and steps on. A run home ends at the old owner's gate. If no path is found it
+    falls back to the straight route (aisle, gate, spoke) and warns in Output.
+  - **No income while running (owner fix):** `Brainrot.running` makes `Income.effective` 0 from the moment
+    the run starts. Catching it clears the flag, so it earns again; reaching the carpet or home removes it.
+    The flag is also cleared on load, in case a save was written mid-run.
   - **Caught** by the owner's touch or bat: it goes home with -10 loyalty and a 2-day timer.
   - **Reached the carpet:** it's removed from the owner's save and becomes a carpet listing anyone can buy,
     even at night (normal listings stop at night). The buyer gets it with the starting loyalty and a 2-day

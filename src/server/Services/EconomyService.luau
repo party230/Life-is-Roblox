@@ -91,6 +91,9 @@ local function updateCollectorLabel(player: Player)
 end
 
 local function onLoaded(player: Player, data: any)
+	for _, b in data.brainrots do
+		b.running = nil -- a run is called off when its owner leaves; a save from mid-run earns again
+	end
 	Income.refresh(data)
 	Slots.sanitize(data, Entitlements.extraSlotTiers(player))
 	local now = os.time()

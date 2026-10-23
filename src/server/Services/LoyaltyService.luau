@@ -3,9 +3,12 @@
 --  * ticks every owned brainrot while its owner is in the server (in-game time only passes for online owners)
 --  * at the middle of each night decides who leaves: a brainrot whose timer ran out runs to the hub carpet (where
 --    anyone can buy it); a stolen brainrot still loyal to its original owner runs home
+--  * runaways pathfind (PathfindingService) off their pedestal, round pedestals and walls, out of the gate
+--  * a runaway earns nothing from the moment it starts running (Brainrot.running), and earns again only if caught
 --  * lets the owner (or, for a brainrot running home, the thief) catch it on the way: touch it or BONK it
 --  * keeps the owner-only data owner-only: it's only ever sent in the owner's own DataSnapshot
 
+local PathfindingService = game:GetService("PathfindingService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -47,6 +50,7 @@ type Run = {
 	model: Model,
 	waypoints: { Vector3 },
 	index: number, -- next waypoint
+	planned: boolean, -- false while the path is still being computed (it waits at the end of what it has)
 }
 
 local runs: { [string]: Run } = {}
@@ -111,6 +115,7 @@ end
 local function finish(run: Run)
 	runs[run.id] = nil
 	run.model:Destroy()
+	run.record.running = nil
 end
 
 local function caught(run: Run)
@@ -159,11 +164,50 @@ local function arrived(run: Run)
 	end
 end
 
+-- Where a brainrot on a pedestal lands when it jumps off: on the floor between its row and the next, toward the gate.
+local function hopOff(refs: Builder.PlotRefs, data: Types.PlayerData, id: string): (Vector3?, Vector3?)
+	for slot, pid in data.pedestals do
+		local def = L.SLOTS[tonumber(slot) :: number]
+		if pid == id and def then
+			local z = def.z - C.RUN_HOP_OFF
+			return Builder.at(refs.origin, def.x, L.FLOOR_TOP, z).Position,
+				Builder.at(refs.origin, 0, L.FLOOR_TOP, z).Position -- the middle aisle (straight-line fallback)
+		end
+	end
+	return nil, nil
+end
+
+-- PathfindingService path between two points on the ground, or nil if there isn't one.
+local function computePath(from: Vector3, to: Vector3): { Vector3 }?
+	local path = PathfindingService:CreatePath({
+		AgentRadius = C.RUN_AGENT_RADIUS,
+		AgentHeight = C.RUN_AGENT_HEIGHT,
+		AgentCanJump = false,
+		WaypointSpacing = C.RUN_WAYPOINT_SPACING,
+	})
+	local ok = pcall(function()
+		path:ComputeAsync(from, to)
+	end)
+	if not ok or path.Status ~= Enum.PathStatus.Success then
+		return nil
+	end
+	local points: { Vector3 } = {}
+	for _, w in path:GetWaypoints() do
+		table.insert(points, w.Position)
+	end
+	return points
+end
+
 local function startRun(player: Player, b: Types.Brainrot, kind: RunKind, home: Player?)
 	local refs = BaseService.refsFor(player)
-	if not refs or runs[b.id] then
+	local data = DataService.get(player)
+	local homeRefs = home and BaseService.refsFor(home)
+	if not refs or not data or runs[b.id] or (kind == "home" and not homeRefs) then
 		return
 	end
+	local gate = Builder.gateCFrame(refs).Position
+	local hubEdge = spokePoint(refs, L.HUB_RADIUS - 4)
+	local landing, aisle = hopOff(refs, data, b.id)
 	local m: Model
 	local detached = BrainrotService.detachModel(player, b.id)
 	if detached then
@@ -175,15 +219,24 @@ local function startRun(player: Player, b: Types.Brainrot, kind: RunKind, home: 
 		m.Parent = refs.brainrots
 	end
 	BrainrotService.setAway(b.id, true)
+	b.running = true -- no income from now on, unless it's caught
 	m:SetAttribute("Walking", true)
 	m:SetAttribute("Leaving", false)
 	m:SetAttribute("Running", true)
-	local waypoints: { Vector3 } = { Builder.gateCFrame(refs).Position, spokePoint(refs, L.HUB_RADIUS - 4) }
+
+	-- goal: just outside the carpet nearest its spoke (then a step onto it), or the old owner's gate
+	local goal: Vector3
+	local tail: { Vector3 } = {}
+	local fallback: { Vector3 } = { gate, hubEdge }
 	local species = Config.Species.byId[b.speciesId]
 	local name = if species then species.displayName else "A brainrot"
 	if kind == "carpet" then
-		local hubEdge = waypoints[2]
-		table.insert(waypoints, ShopService.carpetPoint(ShopService.nearestCarpetDistance(hubEdge)).Position)
+		local onCarpet = ShopService.carpetPoint(ShopService.nearestCarpetDistance(hubEdge)).Position
+		local outward = Vector3.new(onCarpet.X, 0, onCarpet.Z).Unit
+		goal = outward * (L.CARPET.radius + L.CARPET.width / 2 + C.RUN_CARPET_APPROACH)
+			+ Vector3.new(0, L.HUB_TOP, 0)
+		tail = { onCarpet }
+		table.insert(fallback, goal)
 		label(m, "RUNAWAY!", "#FF3B3B")
 		Remotes.Notify:fireClient(
 			player,
@@ -191,20 +244,20 @@ local function startRun(player: Player, b: Types.Brainrot, kind: RunKind, home: 
 			`{name} is running away to the carpet! Touch it or BONK it to catch it!`
 		)
 	else
-		local homeRefs = home and BaseService.refsFor(home)
-		if not homeRefs then
-			BrainrotService.setAway(b.id, false)
-			return
-		end
-		table.insert(waypoints, spokePoint(homeRefs, L.HUB_RADIUS - 4))
-		table.insert(waypoints, Builder.gateCFrame(homeRefs).Position)
+		local theirs = homeRefs :: Builder.PlotRefs
+		goal = Builder.gateCFrame(theirs).Position
+		table.insert(fallback, spokePoint(theirs, L.HUB_RADIUS - 4))
+		table.insert(fallback, goal)
 		label(m, "RUNNING HOME!", "#7CFF9B")
 		Remotes.Notify:fireClient(player, "warn", `{name} is running home to its old owner! Catch it!`)
 		if home then
 			Remotes.Notify:fireClient(home, "good", `{name} misses you and is running home!`)
 		end
 	end
-	runs[b.id] = {
+
+	-- it jumps off its pedestal first (the path starts on the floor), then waits there for its path
+	local from = landing or m:GetPivot().Position
+	local run: Run = {
 		kind = kind,
 		owner = player,
 		catcher = player,
@@ -212,9 +265,32 @@ local function startRun(player: Player, b: Types.Brainrot, kind: RunKind, home: 
 		id = b.id,
 		record = b,
 		model = m,
-		waypoints = waypoints,
+		waypoints = if landing then { landing } else {},
 		index = 1,
+		planned = false,
 	}
+	runs[b.id] = run
+	if aisle then
+		table.insert(fallback, 1, aisle)
+	end
+	task.spawn(function()
+		local points = computePath(from, goal)
+		if runs[b.id] ~= run then
+			return -- caught (or called off) while the path was computing
+		end
+		if not points then
+			warn(`[Loyalty] no path for runaway {b.id}; running the straight route instead`)
+		end
+		local route: { Vector3 } = if points then points else fallback
+		for _, p in route do
+			table.insert(run.waypoints, p)
+		end
+		for _, p in tail do
+			table.insert(run.waypoints, p)
+		end
+		run.planned = true
+	end)
+	DataService.sendSnapshot(player) -- its income is gone from the owner's total right away
 end
 
 local function stepRuns(dt: number)
@@ -222,8 +298,7 @@ local function stepRuns(dt: number)
 		local root = run.model.PrimaryPart
 		if not root or run.owner.Parent ~= Players then
 			-- the owner left: the brainrot stays in their save and the run is called off
-			runs[id] = nil
-			run.model:Destroy()
+			finish(run)
 			BrainrotService.setAway(id, false)
 			continue
 		end
@@ -236,21 +311,23 @@ local function stepRuns(dt: number)
 			caught(run)
 			continue
 		end
+		local target = run.waypoints[run.index]
+		if not target then
+			if run.planned then
+				arrived(run)
+			end
+			continue -- still waiting for its path
+		end
 		local pivot = root.CFrame * root.PivotOffset
 		local pos = pivot.Position
-		local target = run.waypoints[run.index]
 		local step = C.RUN_SPEED * dt
-		local flat = Vector3.new(target.X - pos.X, 0, target.Z - pos.Z)
-		if flat.Magnitude <= step then
+		local delta = target - pos
+		local flat = Vector3.new(delta.X, 0, delta.Z)
+		if delta.Magnitude <= step then
 			run.index += 1
-			if run.index > #run.waypoints then
-				arrived(run)
-				continue
-			end
-			pos = Vector3.new(target.X, target.Y, target.Z)
+			pos = target
 		else
-			pos += flat.Unit * step
-			pos = Vector3.new(pos.X, target.Y, pos.Z)
+			pos += delta.Unit * step
 		end
 		local dir = if flat.Magnitude > 1e-3 then flat.Unit else pivot.LookVector
 		local right = dir:Cross(Vector3.yAxis).Unit
